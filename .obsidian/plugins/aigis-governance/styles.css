@@ -1,0 +1,106 @@
+.aigis-console-view {
+  padding: 1rem;
+}
+
+.aigis-console-header {
+  margin-bottom: 1rem;
+}
+
+.aigis-console-header h2,
+.aigis-console-header p {
+  margin: 0;
+}
+
+.aigis-console-header p {
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+}
+
+.aigis-console-actions,
+.aigis-console-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.aigis-console-actions {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 1rem;
+}
+
+.aigis-console-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.aigis-console-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.aigis-console-card h3,
+.aigis-console-card p,
+.aigis-console-card ul {
+  margin: 0;
+}
+
+.aigis-console-card p,
+.aigis-console-card li {
+  color: var(--text-muted);
+}
+
+.aigis-console-count {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.aigis-console-card ul {
+  padding-left: 1rem;
+  margin-top: 0.75rem;
+}
+
+.aigis-console-card button,
+.aigis-console-actions button {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.aigis-modal-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.aigis-modal-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.aigis-modal-field label {
+  font-weight: 600;
+}
+
+.aigis-modal-field input,
+.aigis-modal-field textarea,
+.aigis-modal-field select {
+  width: 100%;
+}
+
+.aigis-modal-field textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.aigis-modal-help {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.aigis-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

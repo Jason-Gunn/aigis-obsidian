@@ -1,0 +1,14 @@
+# Obsidian workspace state (personal / machine-specific)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+
+# Plugin build artefacts
+.obsidian/plugins/aigis-governance/node_modules/
+
+# Plugin runtime data (settings written by Obsidian at runtime)
+.obsidian/plugins/aigis-governance/data.json
+
+# OS
+.DS_Store
+Thumbs.db

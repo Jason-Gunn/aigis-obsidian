@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIGIS Governance — Plugin Manual</title>
+  <style>
+    /* ─── Reset & base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:          #0f1117;
+      --bg2:         #161b27;
+      --bg3:         #1e2435;
+      --border:      #2a3050;
+      --accent:      #5b8dee;
+      --accent-dim:  #3a5db5;
+      --green:       #3ecf8e;
+      --yellow:      #f6c549;
+      --red:         #e05c5c;
+      --text:        #e2e8f0;
+      --text-muted:  #8892a4;
+      --radius:      10px;
+      --mono:        "Fira Code", "Cascadia Code", "Consolas", monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: var(--mono);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.45em;
+      font-size: 0.88em;
+    }
+    pre {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.4rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.88em;
+      line-height: 1.6;
+      margin: 1rem 0;
+    }
+    pre code { background: none; border: none; padding: 0; font-size: inherit; }
+    h1, h2, h3, h4 { font-weight: 700; line-height: 1.3; }
+    h2 { font-size: 1.55rem; margin-bottom: 0.6rem; }
+    h3 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+    h4 { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.35rem; }
+    p { margin-bottom: 0.85rem; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0.85rem; }
+    li { margin-bottom: 0.3rem; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+    /* ─── Layout ────────────────────────────────────────────────────── */
+    .wrapper { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 248px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 1.5rem 1rem 2rem;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-bottom: 1.8rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo svg { flex-shrink: 0; }
+    .sidebar-logo span { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.03em; }
+    .sidebar nav h4 { padding: 0 0.5rem; margin-top: 1.2rem; }
+    .sidebar nav ul { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+    .sidebar nav li a {
+      display: block;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sidebar nav li a:hover { background: var(--bg3); color: var(--text); text-decoration: none; }
+
+    /* Main content */
+    .main { flex: 1; min-width: 0; }
+    .content { max-width: 860px; margin: 0 auto; padding: 3rem 2.5rem 5rem; }
+
+    /* ─── Hero ──────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--bg2) 0%, #0f1828 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3.5rem 2.5rem 3rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(91, 141, 238, 0.15);
+      border: 1px solid rgba(91, 141, 238, 0.35);
+      border-radius: 20px;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 1.1rem;
+    }
+    .hero h1 { font-size: 2.5rem; color: var(--text); margin-bottom: 0.6rem; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin-bottom: 0; }
+
+    /* ─── Section ───────────────────────────────────────────────────── */
+    .section { margin-bottom: 3rem; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-header .icon {
+      width: 36px; height: 36px;
+      background: rgba(91,141,238,0.12);
+      border: 1px solid rgba(91,141,238,0.25);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-header .icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ─── Module grid ───────────────────────────────────────────────── */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .module-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+    }
+    .module-card-head {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+    .module-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .module-card h3 { font-size: 1rem; }
+    .module-card p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .module-card .fields { font-size: 0.82rem; color: var(--text-muted); }
+    .module-card .fields span {
+      display: inline-block;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.05rem 0.45rem;
+      margin: 0.15rem 0.1rem;
+    }
+
+    /* ─── Steps ─────────────────────────────────────────────────────── */
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      background: var(--accent-dim);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-top: 0.1rem;
+    }
+    .steps li .step-body { flex: 1; }
+    .steps li .step-body strong { display: block; margin-bottom: 0.2rem; }
+
+    /* ─── Command table ─────────────────────────────────────────────── */
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1rem; }
+    .cmd-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+    .cmd-table td {
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .cmd-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .cmd-table td:first-child { white-space: nowrap; }
+
+    /* ─── Settings table ─────────────────────────────────────────────── */
+    .settings-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1rem; }
+    .settings-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+    .settings-table td {
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .settings-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    /* ─── Callouts ──────────────────────────────────────────────────── */
+    .callout {
+      border-radius: var(--radius);
+      padding: 0.9rem 1.1rem;
+      margin: 1.2rem 0;
+      font-size: 0.93rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+    .callout-icon { flex-shrink: 0; font-size: 1.1rem; margin-top: 0.05rem; }
+    .callout.tip    { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.25); }
+    .callout.warn   { background: rgba(246,197,73,0.08); border: 1px solid rgba(246,197,73,0.25); }
+    .callout.info   { background: rgba(91,141,238,0.08); border: 1px solid rgba(91,141,238,0.25); }
+
+    /* ─── Folder tree ───────────────────────────────────────────────── */
+    .tree {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 0.87em;
+      line-height: 1.8;
+    }
+    .tree .dir  { color: var(--accent); }
+    .tree .file { color: var(--text-muted); }
+    .tree .note { color: var(--green); }
+    .tree .dim  { color: #4a5568; }
+
+    /* ─── Responsive ────────────────────────────────────────────────── */
+    @media (max-width: 760px) {
+      .sidebar { display: none; }
+      .hero, .content { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .hero h1 { font-size: 1.8rem; }
+      .module-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ─── Sidebar ────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>AIGIS Manual</span>
+    </div>
+    <nav>
+      <h4>Overview</h4>
+      <ul>
+        <li><a href="#what-is-aigis">What is AIGIS?</a></li>
+        <li><a href="#vault-structure">Vault Structure</a></li>
+      </ul>
+      <h4>Modules</h4>
+      <ul>
+        <li><a href="#inventory">AI Inventory</a></li>
+        <li><a href="#prompts">Prompts</a></li>
+        <li><a href="#policies">Policies</a></li>
+        <li><a href="#workflows">Workflows</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#incidents">Incidents</a></li>
+        <li><a href="#audit-log">Audit Log</a></li>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#console">Console Panel</a></li>
+      </ul>
+      <h4>Installation</h4>
+      <ul>
+        <li><a href="#new-vault">New Vault Setup</a></li>
+        <li><a href="#existing-vault">Existing Vault</a></li>
+        <li><a href="#dev-mode">Development Mode</a></li>
+      </ul>
+      <h4>Reference</h4>
+      <ul>
+        <li><a href="#commands">Commands</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="#frontmatter">Frontmatter Fields</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ─── Main ───────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        v0.1.0 · Obsidian Plugin
+      </div>
+      <h1><span>AIGIS</span> Governance</h1>
+      <p>A stripped-down AI governance layer for Obsidian. Register models, manage prompts and policies, document workflows, store governed skills, track incidents, and maintain an append-only audit log — all inside a Markdown vault.</p>
+    </div>
+
+    <div class="content">
+
+      <!-- ─── What is AIGIS ─────────────────────────────────────── -->
+      <section class="section" id="what-is-aigis">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h2>What is AIGIS?</h2>
+        </div>
+        <p>
+          <strong>AIGIS Governance</strong> is an Obsidian community plugin that brings structured AI governance workflows into your note-taking environment. It is a focused adaptation of the <a href="https://dialogisticindustries.com/solutions/software/aigis/" target="_blank">AIGIS WordPress plugin</a>, keeping the modules that map naturally to Markdown notes while omitting the parts that require a live server (live API sandbox, usage analytics, cost budgets, REST API).
+        </p>
+        <p>
+          The result is a lightweight but opinionated governance workspace: every AI model you operate, every governed prompt, every formal policy, every approved workflow, every reusable skill, and every incident you investigate lives as a structured Markdown note with consistent frontmatter. An append-only audit note records every action the plugin takes.
+        </p>
+        <p><strong>What it is for:</strong></p>
+        <ul>
+          <li>Individuals and small teams who want rigour around their AI tooling without running a full platform.</li>
+          <li>Compliance-track organisations who need a documented evidence base and prefer to own their data locally.</li>
+          <li>Prompt engineers and AI developers who want version-controlled, lifecycle-managed prompt artefacts.</li>
+        </ul>
+        <p><strong>What it is not:</strong></p>
+        <ul>
+          <li>It does not call any AI provider or run prompts — it is purely a governance record.</li>
+          <li>It does not provide real-time usage analytics or cost tracking (those require a server-side component).</li>
+          <li>It is not a replacement for the full AIGIS WordPress plugin if you need a multi-user web interface.</li>
+        </ul>
+      </section>
+
+      <!-- ─── Vault structure ───────────────────────────────────── -->
+      <section class="section" id="vault-structure">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+          <h2>Vault Structure</h2>
+        </div>
+        <p>The plugin manages a single root folder inside your vault (default: <code>AIGIS/</code>). Run <strong>AIGIS: Bootstrap governance vault</strong> once after enabling the plugin to create the full structure and the dashboard.</p>
+        <div class="tree">
+<span class="dir">AIGIS/</span>
+├── <span class="note">Dashboard.md</span>               <span class="dim"># auto-generated, regenerated on every change</span>
+├── <span class="dir">Inventory/</span>
+│   └── <span class="file">your-model-record.md</span>
+├── <span class="dir">Prompts/</span>
+│   └── <span class="file">policy-summariser.md</span>
+├── <span class="dir">Policies/</span>
+│   └── <span class="file">acceptable-use-policy.md</span>
+├── <span class="dir">Workflows/</span>
+│   └── <span class="file">model-deployment-approval.md</span>
+├── <span class="dir">Skills/</span>
+│   └── <span class="file">complaint-triage.md</span>
+├── <span class="dir">Incidents/</span>
+│   └── <span class="file">prompt-injection-blocked.md</span>
+└── <span class="dir">Audit/</span>
+    └── <span class="note">Audit Log.md</span>             <span class="dim"># append-only, never edited by hand</span>
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <div>The root folder name, audit folder name, and dashboard filename are all configurable in <strong>Settings → AIGIS Governance</strong>. You can change them before or after bootstrapping — just update the setting and re-bootstrap to recreate the structure in the new location.</div>
+        </div>
+      </section>
+
+      <hr>
+
+      <!-- ─── Modules heading ───────────────────────────────────── -->
+      <h2 style="margin-bottom: 1rem;">Modules</h2>
+      <p style="color: var(--text-muted); margin-bottom: 2rem;">Each module stores a specific kind of governance artefact as a Markdown note with structured YAML frontmatter. All six modules follow the same pattern: open the console or run a command, fill in a short form, and a ready-to-edit note is created in the right folder.</p>
+      <div class="module-grid" style="margin-bottom: 2.5rem;">
+        <div class="module-card"><div class="module-card-head"><div class="module-dot" style="background:#5b8dee"></div><h3>Inventory</h3></div><p>Register every AI model, agent, and governed system in use.</p><div class="fields"><span>vendor</span><span>model</span><span>risk_level</span><span>status</span><span>owner</span></div></div>
+        <div class="module-card"><div class="module-card-head"><div class="module-dot" style="background:#a78bfa"></div><h3>Prompts</h3></div><p>Store governed prompts with lifecycle stages and version numbers.</p><div class="fields"><span>stage</span><span>version</span><span>provider</span><span>target_model</span></div></div>
+        <div class="module-card"><div class="module-card-head"><div class="module-dot" style="background:#3ecf8e"></div><h3>Policies</h3></div><p>Maintain formal AI-use policies with approval and expiry tracking.</p><div class="fields"><span>status</span><span>version</span><span>effective_date</span><span>review_date</span></div></div>
+        <div class="module-card"><div class="module-card-head"><div class="module-dot" style="background:#f6c549"></div><h3>Workflows</h3></div><p>Document approved AI-assisted processes with Mermaid flow diagrams.</p><div class="fields"><span>owner</span><span>human_oversight</span><span>mermaid diagram</span></div></div>
+        <div class="module-card"><div class="module-card-head"><div class="module-dot" style="background:#f97316"></div><h3>Skills</h3></div><p>Store reusable governed capabilities with trigger phrases and output contracts.</p><div class="fields"><span>version</span><span>team</span><span>trigger_phrases</span><span>output_contract</span></div></div>
+        <div class="module-card"><div class="module-card-head"><div class="module-dot" style="background:#e05c5c"></div><h3>Incidents</h3></div><p>Track events requiring investigation: PII leakage, prompt injection, misuse.</p><div class="fields"><span>severity</span><span>status</span><span>linked_asset</span><span>summary</span></div></div>
+      </div>
+
+      <!-- Inventory -->
+      <section class="section" id="inventory">
+        <div class="section-header">
+          <div class="icon" style="background:rgba(91,141,238,0.12);border-color:rgba(91,141,238,0.25)"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <h2>AI Inventory</h2>
+        </div>
+        <p>The <strong>Inventory</strong> module is the foundation of the governance workspace. Every other module can reference an inventory record by linking to its note. Before creating prompts, policies, or skills, register the AI systems they relate to here.</p>
+        <h3>Fields</h3>
+        <table class="settings-table">
+          <thead><tr><th>Field</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>vendor</code></td><td>The organisation or provider operating the model (e.g. OpenAI, Anthropic, Meta).</td></tr>
+            <tr><td><code>model</code></td><td>Model name and version (e.g. <code>gpt-4.1</code>, <code>claude-opus-4</code>, <code>llama3:8b</code>).</td></tr>
+            <tr><td><code>integration_type</code></td><td><code>api-model</code> — cloud API access. <code>custom-agent</code> — bespoke orchestration. <code>on-prem</code> — self-hosted (e.g. via Ollama).</td></tr>
+            <tr><td><code>risk_level</code></td><td><code>low</code>, <code>medium</code>, or <code>high</code> based on data sensitivity and blast radius if misused.</td></tr>
+            <tr><td><code>owner</code></td><td>Team or person responsible for this model deployment.</td></tr>
+            <tr><td><code>status</code></td><td><code>active</code>, <code>deprecated</code>, or <code>under-review</code>. Deprecated records are kept for audit linkage.</td></tr>
+          </tbody>
+        </table>
+        <h3>Note sections</h3>
+        <p>The generated note includes <strong>Overview</strong> (scope and purpose), <strong>Governance Notes</strong> (data categories, human review expectations, linked policies), and <strong>Operational Context</strong> (agent identifier, endpoint, dependencies).</p>
+      </section>
+
+      <!-- Prompts -->
+      <section class="section" id="prompts">
+        <div class="section-header">
+          <div class="icon" style="background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.25)"><svg viewBox="0 0 24 24" style="stroke:#a78bfa"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h2>Prompts</h2>
+        </div>
+        <p>Prompts are system instructions, templates, or personas used with AI models. AIGIS treats them as version-controlled artefacts with a defined lifecycle stage.</p>
+        <h3>Lifecycle stages</h3>
+        <ul>
+          <li><strong>Development</strong> — in active iteration, not yet approved for use.</li>
+          <li><strong>Staging</strong> — review-ready, being tested before production clearance.</li>
+          <li><strong>Production</strong> — approved and cleared for use in governed workflows.</li>
+        </ul>
+        <p>Update the <code>stage</code> frontmatter field manually as a prompt progresses. Promotion is a deliberate, recorded act — the audit log captures the timestamp and the old and new stage values when you edit the field.</p>
+        <h3>Note sections</h3>
+        <p>Generated notes include <strong>Purpose</strong> (populated from the Goal field), <strong>Prompt Body</strong> (paste the actual prompt text here), and <strong>Review Notes</strong> (promotion criteria, edge cases, linked inventory record).</p>
+      </section>
+
+      <!-- Policies -->
+      <section class="section" id="policies">
+        <div class="section-header">
+          <div class="icon" style="background:rgba(62,207,142,0.12);border-color:rgba(62,207,142,0.25)"><svg viewBox="0 0 24 24" style="stroke:#3ecf8e"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+          <h2>Policies</h2>
+        </div>
+        <p>Policies are formal governance documents that define permitted uses of AI, prohibitions, and consequences of non-compliance. Obsidian's built-in Dataview plugin (if installed) can query the <code>review_date</code> frontmatter field to surface upcoming review obligations. The auto-generated dashboard does this natively for the top five upcoming reviews.</p>
+        <h3>Status values</h3>
+        <ul>
+          <li><strong>draft</strong> — under authorship, not yet reviewed.</li>
+          <li><strong>approved</strong> — formally signed off and in effect.</li>
+          <li><strong>retired</strong> — superseded or no longer applicable; retained for historical record.</li>
+        </ul>
+        <h3>Best practice</h3>
+        <ul>
+          <li>Always assign an <code>owner</code> field so responsibility is traceable.</li>
+          <li>Set a <code>review_date</code> no more than 12 months from the <code>effective_date</code>.</li>
+          <li>Cross-link policies to the inventory records they govern using Obsidian wiki-links.</li>
+        </ul>
+      </section>
+
+      <!-- Workflows -->
+      <section class="section" id="workflows">
+        <div class="section-header">
+          <div class="icon" style="background:rgba(246,197,73,0.12);border-color:rgba(246,197,73,0.25)"><svg viewBox="0 0 24 24" style="stroke:#f6c549"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <h2>Workflows</h2>
+        </div>
+        <p>Workflow notes document approved AI-assisted processes: the sequence of steps, where human oversight is mandatory, and what automated decisions are permissible. Each note is generated with a Mermaid diagram block pre-populated from the form.</p>
+        <h3>Mermaid diagrams</h3>
+        <p>If you have the <a href="https://obsidian.md/plugins?id=obsidian-mermaid" target="_blank">Mermaid</a> community plugin installed (or use an Obsidian version that renders Mermaid natively), the diagram block renders inline as a flowchart. The form pre-populates a simple starter diagram which you can replace with any valid Mermaid syntax.</p>
+        <pre><code>```mermaid
+graph TD
+    A[Draft Workflow] --> B[Governance Review]
+    B --> C{Approved?}
+    C -->|Yes| D[Release to Production]
+    C -->|No| E[Rework]
+```</code></pre>
+        <h3>Best practice</h3>
+        <ul>
+          <li>Mark every node where a human must review output before proceeding.</li>
+          <li>Note in the <strong>Oversight Notes</strong> section what evidence a reviewer needs before they can sign off.</li>
+          <li>Cross-link to the relevant Policy notes that authorise the workflow.</li>
+        </ul>
+      </section>
+
+      <!-- Skills -->
+      <section class="section" id="skills">
+        <div class="section-header">
+          <div class="icon" style="background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.25)"><svg viewBox="0 0 24 24" style="stroke:#f97316"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <h2>Skills</h2>
+        </div>
+        <p>A <strong>skill</strong> is a reusable governed capability — an instruction bundle that tells an agent what to do, when to do it, and what its output must look like. Skills are the bridge between your governance policies and the actual instructions you give to AI systems.</p>
+        <h3>Key fields</h3>
+        <table class="settings-table">
+          <thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>trigger_phrases</code></td><td>The phrases or conditions that should cause an agent to invoke this skill. One phrase per line.</td></tr>
+            <tr><td><code>output_contract</code></td><td>The mandatory structure of the skill's output. State exact section names or formats required.</td></tr>
+            <tr><td><code>team</code></td><td>The team that owns and is responsible for reviewing this skill.</td></tr>
+            <tr><td><code>version</code></td><td>A version tag so you can track iterations (e.g. <code>1.0.0</code>).</td></tr>
+          </tbody>
+        </table>
+        <h3>Note sections</h3>
+        <p>Generated notes include <strong>Capability Summary</strong>, <strong>Method</strong> (the actual instruction body), and <strong>Readiness Review</strong> (edge cases, linked prompts, workflows, policies, and incidents).</p>
+        <div class="callout info">
+          <span class="callout-icon">ℹ️</span>
+          <div>Always populate the <strong>output contract</strong> before using a skill in production. Vague output contracts are the most common cause of inconsistent agent behaviour.</div>
+        </div>
+      </section>
+
+      <!-- Incidents -->
+      <section class="section" id="incidents">
+        <div class="section-header">
+          <div class="icon" style="background:rgba(224,92,92,0.12);border-color:rgba(224,92,92,0.25)"><svg viewBox="0 0 24 24" style="stroke:#e05c5c"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <h2>Incidents</h2>
+        </div>
+        <p>Log and investigate AI incidents here — PII leakage in outputs, prompt injection attempts, misuse, or unexpected model behaviour. The structured format ensures nothing falls through the cracks.</p>
+        <h3>Severity levels</h3>
+        <ul>
+          <li><strong>low</strong> — unexpected but low-impact behaviour with no data or user harm.</li>
+          <li><strong>medium</strong> — potential compliance exposure or repeated boundary violations.</li>
+          <li><strong>high</strong> — confirmed data exposure, harmful content, or regulatory risk.</li>
+          <li><strong>critical</strong> — active harm, confirmed PII breach, or immediate escalation required.</li>
+        </ul>
+        <h3>Status flow</h3>
+        <p><code>open</code> → <code>investigating</code> → <code>resolved</code>. Update the <code>status</code> frontmatter field manually as the investigation progresses. Link the incident to inventory records and skill notes for full traceability.</p>
+        <h3>Note sections</h3>
+        <p>Generated notes include <strong>Incident Summary</strong> (populated from the form), <strong>Investigation</strong> (detection time, containment, root cause), and <strong>Resolution</strong> (owner, follow-up actions, control changes required).</p>
+      </section>
+
+      <!-- Audit Log -->
+      <section class="section" id="audit-log">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <h2>Audit Log</h2>
+        </div>
+        <p>The audit log at <code>AIGIS/Audit/Audit Log.md</code> is an append-only record written by the plugin. You should never manually delete lines from it. The plugin appends a line for every consequential action it takes.</p>
+        <h3>Format</h3>
+        <pre><code>- 2026-04-22T14:33:01.000Z | vault.bootstrap | AIGIS governance vault bootstrapped.
+- 2026-04-22T14:35:20.000Z | note.created | Inventory note created: Customer Support GPT | module=inventory, file=AIGIS/Inventory/customer-support-gpt.md</code></pre>
+        <p>Each line contains: ISO-8601 timestamp, action type, human-readable summary, and optional key=value metadata pairs.</p>
+        <h3>Logged actions</h3>
+        <ul>
+          <li><code>vault.bootstrap</code> — vault structure created or re-bootstrapped.</li>
+          <li><code>note.created</code> — any governance note created through the plugin (includes module, file path).</li>
+        </ul>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>The audit log is a plain Markdown file. Obsidian does not prevent editing it. Treat it as advisory evidence rather than a cryptographic audit trail. For regulatory use cases, export the file regularly and store a copy outside the vault.</div>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="section" id="dashboard">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+          <h2>Dashboard</h2>
+        </div>
+        <p>The <code>AIGIS/Dashboard.md</code> note is regenerated automatically by the plugin every time a managed note is created, deleted, or renamed. It contains:</p>
+        <ul>
+          <li>A count of notes in each module folder with a wiki-link to the folder.</li>
+          <li>Quick links to the audit log and workspace README.</li>
+          <li>The five nearest upcoming policy <code>review_date</code> values, sorted chronologically and linked to the relevant policy note.</li>
+        </ul>
+        <p>Open the dashboard note and pin it in Obsidian as a persistent workspace overview. Use it as the starting point for any governance review session.</p>
+      </section>
+
+      <!-- Console -->
+      <section class="section" id="console">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+          <h2>Console Panel</h2>
+        </div>
+        <p>The <strong>AIGIS Console</strong> is a persistent side panel in Obsidian's right sidebar. It opens automatically on startup (configurable) and provides:</p>
+        <ul>
+          <li>Three quick-action buttons: <strong>Bootstrap vault</strong>, <strong>Open dashboard</strong>, <strong>Open audit log</strong>.</li>
+          <li>One card per module showing the live note count and a <strong>Create</strong> button that opens the creation modal.</li>
+        </ul>
+        <p>The panel refreshes its counts whenever a note is created, deleted, or renamed inside the managed root folder. Open it any time via the shield icon in the ribbon or with the <strong>AIGIS: Open governance console</strong> command.</p>
+      </section>
+
+      <hr>
+
+      <!-- ─── Installation ───────────────────────────────────────── -->
+      <h2 style="margin-bottom: 0.5rem;">Installation</h2>
+      <p style="color:var(--text-muted); margin-bottom: 2rem;">There are two paths depending on whether you are starting a fresh vault or adding the plugin to an existing one.</p>
+
+      <!-- New vault -->
+      <section class="section" id="new-vault">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+          <h2>Option A — Open this repo as a new vault</h2>
+        </div>
+        <p>If you have cloned or downloaded the <code>AIGIS-Obsidian</code> repository, the folder is already a self-contained vault with the plugin source inside it.</p>
+        <ol class="steps">
+          <li>
+            <div class="step-body">
+              <strong>Build the plugin</strong>
+              In a terminal, navigate to the plugin folder and install dependencies then build:
+              <pre><code>cd ".obsidian/plugins/aigis-governance"
+npm install
+npm run build</code></pre>
+              This produces <code>main.js</code> inside the plugin folder.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Open the folder as a vault in Obsidian</strong>
+              Launch Obsidian → <em>Open another vault</em> → <em>Open folder as vault</em> → select the <code>AIGIS-Obsidian</code> folder.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Enable the plugin</strong>
+              Go to <em>Settings → Community Plugins</em>. If prompted, turn off Restricted Mode. Find <strong>AIGIS Governance</strong> in the list and toggle it on.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Bootstrap the vault</strong>
+              Open the command palette (<kbd>Ctrl/Cmd + P</kbd>) and run <strong>AIGIS: Bootstrap governance vault</strong>. The plugin creates the folder structure, the dashboard note, and the audit log, then opens the console panel.
+            </div>
+          </li>
+        </ol>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <div>You do not need to keep your governance notes inside the <code>AIGIS-Obsidian</code> folder. Once the plugin is built you can copy just the three plugin files (<code>main.js</code>, <code>manifest.json</code>, <code>styles.css</code>) into any vault.</div>
+        </div>
+      </section>
+
+      <!-- Existing vault -->
+      <section class="section" id="existing-vault">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+          <h2>Option B — Add to an existing vault</h2>
+        </div>
+        <p>If you already use Obsidian with a main vault and want AIGIS to run inside it, copy the compiled plugin files into your vault's plugin directory.</p>
+        <ol class="steps">
+          <li>
+            <div class="step-body">
+              <strong>Build the plugin (if not already done)</strong>
+              <pre><code>cd ".obsidian/plugins/aigis-governance"
+npm install
+npm run build</code></pre>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Locate your existing vault's plugin folder</strong>
+              In your main vault, navigate to <code>&lt;your-vault&gt;/.obsidian/plugins/</code>. Create it if it does not exist.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Copy the three plugin files</strong>
+              Copy these three files from the repository into a new sub-folder named <code>aigis-governance</code> inside your vault's plugins directory:
+              <pre><code>.obsidian/plugins/aigis-governance/
+├── main.js          ← compiled output
+├── manifest.json    ← plugin metadata
+└── styles.css       ← console and modal styles</code></pre>
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Enable the plugin</strong>
+              In Obsidian, go to <em>Settings → Community Plugins → Reload plugins</em>, then find <strong>AIGIS Governance</strong> and enable it.
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Configure the root folder (optional)</strong>
+              Go to <em>Settings → AIGIS Governance</em> and set the <strong>Root folder</strong> to wherever you want governance notes to live inside your existing vault (e.g. <code>Work/AI Governance</code>).
+            </div>
+          </li>
+          <li>
+            <div class="step-body">
+              <strong>Bootstrap</strong>
+              Run <strong>AIGIS: Bootstrap governance vault</strong> from the command palette to create the folder structure inside your vault.
+            </div>
+          </li>
+        </ol>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>If you already have a folder at the configured root path, bootstrapping will add missing sub-folders and files without overwriting existing ones. It will not delete or modify any notes that are already there.</div>
+        </div>
+      </section>
+
+      <!-- Dev mode -->
+      <section class="section" id="dev-mode">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+          <h2>Development mode</h2>
+        </div>
+        <p>If you want to modify the plugin source, run the watcher instead of a one-shot build. The watcher rebuilds <code>main.js</code> on every file save with inline source maps for easier debugging.</p>
+        <pre><code>cd ".obsidian/plugins/aigis-governance"
+npm run dev</code></pre>
+        <p>After saving a change, use <em>Ctrl/Cmd + P → Reload app without saving</em> in Obsidian to hot-reload the plugin, or toggle it off and on in <em>Settings → Community Plugins</em>.</p>
+        <div class="callout info">
+          <span class="callout-icon">ℹ️</span>
+          <div>The <code>src/main.ts</code> file contains the entire plugin. There is intentionally no multi-file split at MVP scope — all types, commands, views, modals, and settings live in one file for simplicity.</div>
+        </div>
+      </section>
+
+      <hr>
+
+      <!-- ─── Commands ──────────────────────────────────────────── -->
+      <section class="section" id="commands">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+          <h2>Command Reference</h2>
+        </div>
+        <p>All commands are available from the command palette (<kbd>Ctrl/Cmd + P</kbd>). You can also assign hotkeys in <em>Settings → Hotkeys</em>.</p>
+        <table class="cmd-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>AIGIS: Bootstrap governance vault</code></td><td>Creates the folder structure, audit log, and dashboard if they do not exist. Safe to re-run — nothing is overwritten.</td></tr>
+            <tr><td><code>AIGIS: Open governance console</code></td><td>Opens or focuses the AIGIS Console side panel in the right sidebar.</td></tr>
+            <tr><td><code>AIGIS: Create Inventory record note</code></td><td>Opens the inventory creation form and places the new note in <code>AIGIS/Inventory/</code>.</td></tr>
+            <tr><td><code>AIGIS: Create Prompt note</code></td><td>Opens the prompt creation form and places the note in <code>AIGIS/Prompts/</code>.</td></tr>
+            <tr><td><code>AIGIS: Create Policy note</code></td><td>Opens the policy creation form and places the note in <code>AIGIS/Policies/</code>.</td></tr>
+            <tr><td><code>AIGIS: Create Workflow note</code></td><td>Opens the workflow creation form (includes a Mermaid starter diagram) and places the note in <code>AIGIS/Workflows/</code>.</td></tr>
+            <tr><td><code>AIGIS: Create Skill note</code></td><td>Opens the skill creation form and places the note in <code>AIGIS/Skills/</code>.</td></tr>
+            <tr><td><code>AIGIS: Create Incident note</code></td><td>Opens the incident creation form and places the note in <code>AIGIS/Incidents/</code>.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ─── Settings ──────────────────────────────────────────── -->
+      <section class="section" id="settings">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+          <h2>Settings</h2>
+        </div>
+        <p>Access plugin settings at <em>Settings → AIGIS Governance</em>.</p>
+        <table class="settings-table">
+          <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Root folder</td><td><code>AIGIS</code></td><td>Top-level vault folder the plugin manages. Change this before bootstrapping if you want a different location (e.g. <code>Governance/AIGIS</code>).</td></tr>
+            <tr><td>Audit folder</td><td><code>Audit</code></td><td>Sub-folder within the root where the append-only audit note is stored.</td></tr>
+            <tr><td>Dashboard note</td><td><code>Dashboard.md</code></td><td>Filename for the auto-generated dashboard inside the root folder.</td></tr>
+            <tr><td>Auto-open console</td><td><code>on</code></td><td>Whether to open the AIGIS Console side panel automatically when Obsidian loads.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ─── Frontmatter ───────────────────────────────────────── -->
+      <section class="section" id="frontmatter">
+        <div class="section-header">
+          <div class="icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+          <h2>Frontmatter Reference</h2>
+        </div>
+        <p>Every note created by the plugin includes the following system-level frontmatter fields in addition to the module-specific ones:</p>
+        <table class="settings-table">
+          <thead><tr><th>Field</th><th>Present in</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>aigis_module</code></td><td>All notes</td><td>The module type: <code>inventory</code>, <code>prompts</code>, <code>policies</code>, <code>workflows</code>, <code>skills</code>, or <code>incidents</code>. Useful for Dataview queries.</td></tr>
+            <tr><td><code>title</code></td><td>All notes</td><td>The human-readable title entered in the creation form.</td></tr>
+            <tr><td><code>created_at</code></td><td>All notes</td><td>ISO-8601 timestamp written at creation time.</td></tr>
+            <tr><td><code>updated_at</code></td><td>All notes</td><td>ISO-8601 timestamp at creation (not auto-updated on edit — update manually or via a Templater script).</td></tr>
+          </tbody>
+        </table>
+        <p>All other frontmatter fields are module-specific and match the form fields described in each module section above.</p>
+        <h3>Example: querying with Dataview</h3>
+        <p>If you have the <a href="https://obsidian.md/plugins?id=dataview" target="_blank">Dataview</a> plugin installed, you can write queries like:</p>
+        <pre><code>```dataview
+TABLE vendor, model, risk_level, status
+FROM "AIGIS/Inventory"
+SORT risk_level DESC
+```</code></pre>
+        <pre><code>```dataview
+TABLE status, review_date, owner
+FROM "AIGIS/Policies"
+WHERE review_date &lt;= date(today) + dur(60 days)
+SORT review_date ASC
+```</code></pre>
+      </section>
+
+      <hr>
+
+      <p style="text-align:center; color:var(--text-muted); font-size:0.88rem; margin-top: 2rem;">
+        AIGIS Governance · Obsidian Plugin · v0.1.0 · MIT License<br>
+        Adapted from <a href="https://dialogisticindustries.com/solutions/software/aigis/" target="_blank">AIGIS by Dialogistic Industries</a>
+      </p>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+</div><!-- /wrapper -->
+</body>
+</html>
