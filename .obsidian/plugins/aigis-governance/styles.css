@@ -33,10 +33,10 @@
 }
 
 .aigis-console-card {
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
-  padding: 0.9rem;
+  background: var(--aigis-card-bg, var(--background-secondary));
+  border: var(--aigis-card-border-width, 1px) solid var(--aigis-card-border-color, var(--background-modifier-border));
+  border-radius: var(--aigis-card-border-radius, 12px);
+  padding: var(--aigis-card-padding, 0.9rem);
 }
 
 .aigis-console-card h3,
@@ -45,52 +45,26 @@
   margin: 0;
 }
 
-.aigis-console-card p,
-.aigis-console-card li {
-  color: var(--text-muted);
-}
-
-.aigis-console-count {
-  display: block;
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0.35rem 0 0.5rem;
-}
-
-.aigis-console-card ul {
-  padding-left: 1rem;
-  margin-top: 0.75rem;
-}
-
 .aigis-console-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
 }
 
-.aigis-console-card--hidden {
-  padding: 0.45rem 0.75rem;
-  opacity: 0.55;
+.aigis-console-card-title {
+  font-size: var(--aigis-title-font-size, 1rem);
+  color: var(--aigis-title-color, inherit);
+  margin: 0;
 }
 
-.aigis-console-card-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  padding: 3px 4px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
+.aigis-console-count {
+  font-size: var(--aigis-count-font-size, 1.1rem);
+  font-weight: 700;
+  color: var(--aigis-count-color, var(--text-muted));
   line-height: 1;
-  box-shadow: none;
-}
-
-.aigis-console-card-toggle:hover {
-  color: var(--text-normal);
-  background: var(--background-modifier-hover);
+  flex-shrink: 0;
 }
 
 .aigis-console-create-btn,
@@ -100,10 +74,13 @@
 
 .aigis-console-create-btn {
   margin-top: 0.75rem;
+  font-size: var(--aigis-btn-font-size, 0.85rem);
 }
 
 .aigis-console-card-desc {
   margin-top: 0.3rem;
+  font-size: var(--aigis-desc-font-size, 0.85rem);
+  color: var(--aigis-desc-color, var(--text-muted));
 }
 
 .aigis-modal-grid {
@@ -189,4 +166,50 @@
   color: var(--text-muted);
   font-size: 0.9rem;
   margin: 0 0 0.5rem;
+}
+
+/* Card order section */
+.aigis-order-section {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  margin: 0.4rem 0 1.2rem;
+}
+
+.aigis-order-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.aigis-order-row:last-child {
+  border-bottom: none;
+}
+
+.aigis-order-label {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.aigis-order-btns {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.aigis-order-btn {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  min-width: 30px;
+  box-shadow: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  cursor: pointer;
+  color: var(--text-normal);
+}
+
+.aigis-order-btn:hover {
+  background: var(--background-modifier-hover);
 }

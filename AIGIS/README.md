@@ -1,4 +1,4 @@
-# AIGIS Workspace
+**# AIGIS Workspace
 
 This vault section is the governance workspace used by the plugin.
 

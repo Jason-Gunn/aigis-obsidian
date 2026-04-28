@@ -25,17 +25,36 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 var VIEW_TYPE_AIGIS_CONSOLE = "aigis-console";
+var ALL_MODULES = ["inventory", "prompts", "policies", "workflows", "skills", "incidents"];
+var DEFAULT_CONSOLE_STYLE = {
+  cardBg: "",
+  cardPadding: "0.9rem",
+  cardBorderColor: "",
+  cardBorderWidth: "1px",
+  cardBorderRadius: "12px",
+  titleFontSize: "1rem",
+  titleColor: "",
+  countFontSize: "1.1rem",
+  countColor: "",
+  descFontSize: "0.85rem",
+  descColor: "",
+  btnBg: "",
+  btnColor: "",
+  btnFontSize: "0.85rem"
+};
 var DEFAULT_SETTINGS = {
   rootFolder: "AIGIS",
   auditFolderName: "Audit",
   dashboardNoteName: "Dashboard.md",
   autoOpenConsole: true,
   hiddenModules: [],
+  moduleOrder: [...ALL_MODULES],
   customLists: {
     vendors: ["Anthropic", "Cohere", "Google DeepMind", "Meta", "Mistral AI", "OpenAI"],
     models: ["claude-opus-4", "claude-sonnet-4", "gemini-2.0-flash", "gpt-4.1", "gpt-4o", "llama3:8b", "o3"],
     teams: ["AI Governance Office", "Compliance", "Engineering", "Product Operations"]
-  }
+  },
+  consoleStyle: { ...DEFAULT_CONSOLE_STYLE }
 };
 var MODULES = {
   inventory: {
@@ -369,9 +388,14 @@ var AigisGovernancePlugin = class extends import_obsidian.Plugin {
       ...DEFAULT_SETTINGS,
       ...saved,
       hiddenModules: Array.isArray(saved?.hiddenModules) ? saved.hiddenModules : [],
+      moduleOrder: Array.isArray(saved?.moduleOrder) && saved.moduleOrder.length > 0 ? saved.moduleOrder : [...ALL_MODULES],
       customLists: {
         ...DEFAULT_SETTINGS.customLists,
         ...saved?.customLists ?? {}
+      },
+      consoleStyle: {
+        ...DEFAULT_CONSOLE_STYLE,
+        ...saved?.consoleStyle ?? {}
       }
     };
   }
@@ -707,30 +731,24 @@ var AigisConsoleView = class extends import_obsidian.ItemView {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("aigis-console-view");
+    this.applyConsoleStyles(contentEl);
     const header = contentEl.createDiv({ cls: "aigis-console-header" });
     header.createEl("h2", { text: "AIGIS Console" });
     header.createEl("p", { text: "Governance note creation, counts, and quick links for this vault.", cls: "aigis-console-subtitle" });
     const grid = contentEl.createDiv({ cls: "aigis-console-grid" });
-    const entries = Object.entries(MODULES);
-    for (const [module2, definition] of entries) {
-      const isHidden = this.plugin.settings.hiddenModules.includes(module2);
-      const card = grid.createDiv({ cls: `aigis-console-card${isHidden ? " aigis-console-card--hidden" : ""}` });
+    const orderedVisible = this.plugin.settings.moduleOrder.filter((m) => !this.plugin.settings.hiddenModules.includes(m));
+    for (const module2 of orderedVisible) {
+      const definition = MODULES[module2];
+      const card = grid.createDiv({ cls: "aigis-console-card" });
       const cardHeader = card.createDiv({ cls: "aigis-console-card-header" });
-      cardHeader.createEl("h3", { text: definition.label });
-      const toggleBtn = cardHeader.createEl("button", { cls: "aigis-console-card-toggle" });
-      toggleBtn.setAttribute("aria-label", isHidden ? "Show module" : "Hide module");
-      toggleBtn.setAttribute("title", isHidden ? "Show" : "Hide");
-      toggleBtn.innerHTML = isHidden ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-      toggleBtn.addEventListener("click", async () => {
-        await this.plugin.toggleModuleVisibility(module2);
-        await this.render();
-      });
-      if (!isHidden) {
-        card.createEl("p", { text: definition.description, cls: "aigis-console-card-desc" });
-        card.createSpan({ cls: "aigis-console-count", text: String(this.plugin.countModuleNotes(module2)) });
-        const createButton = card.createEl("button", { text: `Create ${definition.entryLabel}`, cls: "mod-cta aigis-console-create-btn" });
-        createButton.addEventListener("click", () => void this.plugin.createModuleNote(module2));
-      }
+      cardHeader.createEl("h3", { text: definition.label, cls: "aigis-console-card-title" });
+      cardHeader.createSpan({ cls: "aigis-console-count", text: String(this.plugin.countModuleNotes(module2)) });
+      card.createEl("p", { text: definition.description, cls: "aigis-console-card-desc" });
+      const createButton = card.createEl("button", { text: `Create ${definition.entryLabel}`, cls: "mod-cta aigis-console-create-btn" });
+      const { btnBg, btnColor } = this.plugin.settings.consoleStyle;
+      if (btnBg.trim()) createButton.style.backgroundColor = btnBg.trim();
+      if (btnColor.trim()) createButton.style.color = btnColor.trim();
+      createButton.addEventListener("click", () => void this.plugin.createModuleNote(module2));
     }
     const actions = contentEl.createDiv({ cls: "aigis-console-actions" });
     const bootstrapButton = actions.createEl("button", { text: "Bootstrap vault", cls: "aigis-console-action-btn" });
@@ -739,6 +757,27 @@ var AigisConsoleView = class extends import_obsidian.ItemView {
     dashboardButton.addEventListener("click", () => void this.plugin.openManagedNote(this.plugin.getDashboardPath()));
     const auditButton = actions.createEl("button", { text: "Open audit log", cls: "aigis-console-action-btn" });
     auditButton.addEventListener("click", () => void this.plugin.openManagedNote(this.plugin.getAuditLogPath()));
+  }
+  applyConsoleStyles(el) {
+    const s = this.plugin.settings.consoleStyle;
+    const set = (prop, val) => {
+      if (val.trim()) el.style.setProperty(prop, val.trim());
+      else el.style.removeProperty(prop);
+    };
+    set("--aigis-card-bg", s.cardBg);
+    set("--aigis-card-padding", s.cardPadding);
+    set("--aigis-card-border-color", s.cardBorderColor);
+    set("--aigis-card-border-width", s.cardBorderWidth);
+    set("--aigis-card-border-radius", s.cardBorderRadius);
+    set("--aigis-title-font-size", s.titleFontSize);
+    set("--aigis-title-color", s.titleColor);
+    set("--aigis-count-font-size", s.countFontSize);
+    set("--aigis-count-color", s.countColor);
+    set("--aigis-desc-font-size", s.descFontSize);
+    set("--aigis-desc-color", s.descColor);
+    set("--aigis-btn-bg", s.btnBg);
+    set("--aigis-btn-color", s.btnColor);
+    set("--aigis-btn-font-size", s.btnFontSize);
   }
 };
 var EntryModal = class _EntryModal extends import_obsidian.Modal {
@@ -913,6 +952,83 @@ var AigisSettingTab = class extends import_obsidian.PluginSettingTab {
         });
       });
     }
+    containerEl.createEl("h3", { text: "Card order" });
+    containerEl.createEl("p", {
+      text: "Use the arrows to reorder the module cards in the console.",
+      cls: "aigis-settings-desc"
+    });
+    const orderSection = containerEl.createDiv({ cls: "aigis-order-section" });
+    const renderOrder = () => {
+      orderSection.empty();
+      const order = this.plugin.settings.moduleOrder;
+      order.forEach((mod, idx) => {
+        const row = orderSection.createDiv({ cls: "aigis-order-row" });
+        row.createSpan({ text: MODULES[mod].label, cls: "aigis-order-label" });
+        const btns = row.createDiv({ cls: "aigis-order-btns" });
+        if (idx > 0) {
+          const upBtn = btns.createEl("button", { text: "\u2191", cls: "aigis-order-btn" });
+          upBtn.setAttribute("aria-label", "Move up");
+          upBtn.addEventListener("click", async () => {
+            [order[idx - 1], order[idx]] = [order[idx], order[idx - 1]];
+            await this.plugin.saveSettings();
+            await this.plugin.refreshConsoleViews();
+            renderOrder();
+          });
+        }
+        if (idx < order.length - 1) {
+          const downBtn = btns.createEl("button", { text: "\u2193", cls: "aigis-order-btn" });
+          downBtn.setAttribute("aria-label", "Move down");
+          downBtn.addEventListener("click", async () => {
+            [order[idx + 1], order[idx]] = [order[idx], order[idx + 1]];
+            await this.plugin.saveSettings();
+            await this.plugin.refreshConsoleViews();
+            renderOrder();
+          });
+        }
+      });
+    };
+    renderOrder();
+    containerEl.createEl("h3", { text: "Console appearance" });
+    containerEl.createEl("p", {
+      text: "Customise font sizes, colours, and borders. Leave blank to use the theme default.",
+      cls: "aigis-settings-desc"
+    });
+    const styleFields = [
+      { key: "cardBg", name: "Card background", desc: "CSS colour, e.g. #1e2030", placeholder: "theme default" },
+      { key: "cardPadding", name: "Card padding", desc: "CSS spacing, e.g. 0.9rem or 12px", placeholder: "0.9rem" },
+      { key: "cardBorderColor", name: "Card border colour", desc: "CSS colour, e.g. #444", placeholder: "theme default" },
+      { key: "cardBorderWidth", name: "Card border width", desc: "CSS length, e.g. 1px or 2px", placeholder: "1px" },
+      { key: "cardBorderRadius", name: "Card border radius", desc: "CSS length, e.g. 12px or 0.5rem", placeholder: "12px" },
+      { key: "titleFontSize", name: "Title font size", desc: "CSS font-size, e.g. 1rem or 14px", placeholder: "1rem" },
+      { key: "titleColor", name: "Title colour", desc: "CSS colour, e.g. #fff", placeholder: "theme default" },
+      { key: "countFontSize", name: "Count font size", desc: "The note count shown in each card header", placeholder: "1.1rem" },
+      { key: "countColor", name: "Count colour", desc: "CSS colour, e.g. #aaa", placeholder: "theme default" },
+      { key: "descFontSize", name: "Description font size", desc: "The module description text", placeholder: "0.85rem" },
+      { key: "descColor", name: "Description colour", desc: "CSS colour", placeholder: "theme default" },
+      { key: "btnBg", name: "Button color", desc: "CSS colour for the create button background, e.g. #5c6bc0", placeholder: "theme default" },
+      { key: "btnColor", name: "Button font color", desc: "CSS colour for the create button text, e.g. #fff", placeholder: "theme default" },
+      { key: "btnFontSize", name: "Button font size", desc: "Create button in each card", placeholder: "0.85rem" }
+    ];
+    for (const field of styleFields) {
+      new import_obsidian.Setting(containerEl).setName(field.name).setDesc(field.desc).addText((text) => {
+        text.setPlaceholder(field.placeholder);
+        text.setValue(this.plugin.settings.consoleStyle[field.key]);
+        text.onChange(async (value) => {
+          this.plugin.settings.consoleStyle[field.key] = value;
+          await this.plugin.saveSettings();
+          await this.plugin.refreshConsoleViews();
+        });
+      });
+    }
+    new import_obsidian.Setting(containerEl).setName("Reset appearance to defaults").setDesc("Restore all console appearance settings to their default values.").addButton((btn) => {
+      btn.setButtonText("Reset");
+      btn.onClick(async () => {
+        this.plugin.settings.consoleStyle = { ...DEFAULT_CONSOLE_STYLE };
+        await this.plugin.saveSettings();
+        await this.plugin.refreshConsoleViews();
+        this.display();
+      });
+    });
     containerEl.createEl("h3", { text: "Manage dropdown lists" });
     containerEl.createEl("p", {
       text: "These lists populate vendor, model, and team fields in note creation forms.",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AIGIS Governance — Plugin Manual</title>
+  <title>AIGIS — AI Governance and Infrastructure Suite for Obsidian</title>
   <style>
     /* ─── Reset & base ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -324,6 +324,13 @@
         <li><a href="#settings">Settings</a></li>
         <li><a href="#frontmatter">Frontmatter Fields</a></li>
       </ul>
+      <h4>Admin</h4>
+      <ul>
+        <li><a href="#console-visibility">Console Visibility</a></li>
+        <li><a href="#card-order">Card Order</a></li>
+        <li><a href="#console-appearance">Console Appearance</a></li>
+        <li><a href="#dropdown-lists">Dropdown Lists</a></li>
+      </ul>
     </nav>
   </aside>
 
@@ -334,10 +341,10 @@
     <div class="hero">
       <div class="hero-badge">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        v0.1.0 · Obsidian Plugin
+        v0.1.2 · Obsidian Plugin
       </div>
-      <h1><span>AIGIS</span> Governance</h1>
-      <p>A stripped-down AI governance layer for Obsidian. Register models, manage prompts and policies, document workflows, store governed skills, track incidents, and maintain an append-only audit log — all inside a Markdown vault.</p>
+      <h1><span>AIGIS</span> — AI Governance and Infrastructure Suite for Obsidian</h1>
+      <p>A lightweight version of the <a href="https://dialogisticindustries.com/solutions/software/aigis/" target="_blank">AIGIS: The AI Governance and Infrastructure Suite</a> built specifically for Obsidian. It gives you a centralized command center for every AI model you deploy, with a formal inventory, prompts, a skills repository for reusable agent capabilities, guardrails, and an audit trail.</p>
     </div>
 
     <div class="content">
@@ -589,9 +596,10 @@ graph TD
         </div>
         <p>The <strong>AIGIS Console</strong> is a persistent side panel in Obsidian's right sidebar. It opens automatically on startup (configurable) and provides:</p>
         <ul>
-          <li>Three quick-action buttons: <strong>Bootstrap vault</strong>, <strong>Open dashboard</strong>, <strong>Open audit log</strong>.</li>
-          <li>One card per module showing the live note count and a <strong>Create</strong> button that opens the creation modal.</li>
+          <li>Three quick-action buttons at the bottom: <strong>Bootstrap vault</strong>, <strong>Open dashboard</strong>, <strong>Open audit log</strong>.</li>
+          <li>One card per <em>visible</em> module showing the live note count (displayed in the card header) and a <strong>Create</strong> button that opens the creation modal.</li>
         </ul>
+        <p>Modules toggled off in <em>Settings → AIGIS Governance → Console visibility</em> do not appear in the console at all. The note count for each visible module is shown inline on the right side of its card header. The order of cards can be customised in Settings → Card order.</p>
         <p>The panel refreshes its counts whenever a note is created, deleted, or renamed inside the managed root folder. Open it any time via the shield icon in the ribbon or with the <strong>AIGIS: Open governance console</strong> command.</p>
       </section>
 
@@ -607,18 +615,8 @@ graph TD
           <div class="icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
           <h2>Option A — Open this repo as a new vault</h2>
         </div>
-        <p>If you have cloned or downloaded the <code>AIGIS-Obsidian</code> repository, the folder is already a self-contained vault with the plugin source inside it.</p>
+        <p>If you have cloned or downloaded the <code>AIGIS-Obsidian</code> repository, the folder is already a self-contained vault with the compiled plugin inside it — no build step required.</p>
         <ol class="steps">
-          <li>
-            <div class="step-body">
-              <strong>Build the plugin</strong>
-              In a terminal, navigate to the plugin folder and install dependencies then build:
-              <pre><code>cd ".obsidian/plugins/aigis-governance"
-npm install
-npm run build</code></pre>
-              This produces <code>main.js</code> inside the plugin folder.
-            </div>
-          </li>
           <li>
             <div class="step-body">
               <strong>Open the folder as a vault in Obsidian</strong>
@@ -628,7 +626,7 @@ npm run build</code></pre>
           <li>
             <div class="step-body">
               <strong>Enable the plugin</strong>
-              Go to <em>Settings → Community Plugins</em>. If prompted, turn off Restricted Mode. Find <strong>AIGIS Governance</strong> in the list and toggle it on.
+              Go to <em>Settings → Community Plugins</em>. If prompted, turn off Restricted Mode. Find <strong>AI Governance and Infrastructure Suite for Obsidian</strong> in the list and toggle it on.
             </div>
           </li>
           <li>
@@ -640,7 +638,7 @@ npm run build</code></pre>
         </ol>
         <div class="callout tip">
           <span class="callout-icon">💡</span>
-          <div>You do not need to keep your governance notes inside the <code>AIGIS-Obsidian</code> folder. Once the plugin is built you can copy just the three plugin files (<code>main.js</code>, <code>manifest.json</code>, <code>styles.css</code>) into any vault.</div>
+          <div>You do not need to keep your governance notes inside the <code>AIGIS-Obsidian</code> folder. Once the plugin is installed you can copy just the three plugin files (<code>main.js</code>, <code>manifest.json</code>, <code>styles.css</code>) into any vault's <code>.obsidian/plugins/aigis-governance/</code> folder.</div>
         </div>
       </section>
 
@@ -650,26 +648,18 @@ npm run build</code></pre>
           <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
           <h2>Option B — Add to an existing vault</h2>
         </div>
-        <p>If you already use Obsidian with a main vault and want AIGIS to run inside it, copy the compiled plugin files into your vault's plugin directory.</p>
+        <p>If you already use Obsidian with a main vault and want AIGIS to run inside it, copy the three compiled plugin files into your vault's plugin directory.</p>
         <ol class="steps">
           <li>
             <div class="step-body">
-              <strong>Build the plugin (if not already done)</strong>
-              <pre><code>cd ".obsidian/plugins/aigis-governance"
-npm install
-npm run build</code></pre>
-            </div>
-          </li>
-          <li>
-            <div class="step-body">
-              <strong>Locate your existing vault's plugin folder</strong>
-              In your main vault, navigate to <code>&lt;your-vault&gt;/.obsidian/plugins/</code>. Create it if it does not exist.
+              <strong>Locate or create the plugin folder in your existing vault</strong>
+              Navigate to <code>&lt;your-vault&gt;/.obsidian/plugins/</code>. Create it if it does not exist, then create a sub-folder named <code>aigis-governance</code>.
             </div>
           </li>
           <li>
             <div class="step-body">
               <strong>Copy the three plugin files</strong>
-              Copy these three files from the repository into a new sub-folder named <code>aigis-governance</code> inside your vault's plugins directory:
+              From the repository, copy these three files into the new sub-folder:
               <pre><code>.obsidian/plugins/aigis-governance/
 ├── main.js          ← compiled output
 ├── manifest.json    ← plugin metadata
@@ -679,7 +669,7 @@ npm run build</code></pre>
           <li>
             <div class="step-body">
               <strong>Enable the plugin</strong>
-              In Obsidian, go to <em>Settings → Community Plugins → Reload plugins</em>, then find <strong>AIGIS Governance</strong> and enable it.
+              In Obsidian, go to <em>Settings → Community Plugins → Reload plugins</em>, then find <strong>AI Governance and Infrastructure Suite for Obsidian</strong> and enable it.
             </div>
           </li>
           <li>
@@ -748,6 +738,8 @@ npm run dev</code></pre>
           <h2>Settings</h2>
         </div>
         <p>Access plugin settings at <em>Settings → AIGIS Governance</em>.</p>
+
+        <h3>General</h3>
         <table class="settings-table">
           <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
           <tbody>
@@ -757,6 +749,54 @@ npm run dev</code></pre>
             <tr><td>Auto-open console</td><td><code>on</code></td><td>Whether to open the AIGIS Console side panel automatically when Obsidian loads.</td></tr>
           </tbody>
         </table>
+
+        <h3 id="console-visibility">Console visibility</h3>
+        <p>Toggle which modules appear as cards in the AIGIS Console. A module toggled <strong>off</strong> is hidden entirely — its card will not render in the console at all. Visibility is only controlled here in Settings, not from the console itself.</p>
+        <table class="settings-table">
+          <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Inventory</td><td><code>on</code></td><td rowspan="6">Toggle each module card on or off. Hidden modules are completely absent from the console.</td></tr>
+            <tr><td>Prompts</td><td><code>on</code></td></tr>
+            <tr><td>Policies</td><td><code>on</code></td></tr>
+            <tr><td>Workflows</td><td><code>on</code></td></tr>
+            <tr><td>Skills</td><td><code>on</code></td></tr>
+            <tr><td>Incidents</td><td><code>on</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="card-order">Card order</h3>
+        <p>Use the <strong>↑</strong> and <strong>↓</strong> arrow buttons to reorder the module cards in the console. Changes take effect immediately in the open console panel.</p>
+
+        <h3 id="console-appearance">Console appearance</h3>
+        <p>Customise font sizes, colours, borders, and padding for each element of the console cards. Leave any field blank to use the active Obsidian theme's default.</p>
+        <table class="settings-table">
+          <thead><tr><th>Setting</th><th>Default</th><th>Accepts</th></tr></thead>
+          <tbody>
+            <tr><td>Card background</td><td>theme default</td><td>CSS colour — <code>#1e2030</code>, <code>rgba(0,0,0,0.4)</code>, etc.</td></tr>
+            <tr><td>Card padding</td><td><code>0.9rem</code></td><td>CSS spacing — <code>0.9rem</code>, <code>12px 16px</code></td></tr>
+            <tr><td>Card border colour</td><td>theme default</td><td>CSS colour</td></tr>
+            <tr><td>Card border width</td><td><code>1px</code></td><td>CSS length — <code>1px</code>, <code>2px</code></td></tr>
+            <tr><td>Card border radius</td><td><code>12px</code></td><td>CSS length — <code>12px</code>, <code>0.5rem</code></td></tr>
+            <tr><td>Title font size</td><td><code>1rem</code></td><td>CSS font-size — <code>1rem</code>, <code>14px</code></td></tr>
+            <tr><td>Title colour</td><td>theme default</td><td>CSS colour</td></tr>
+            <tr><td>Count font size</td><td><code>1.1rem</code></td><td>CSS font-size</td></tr>
+            <tr><td>Count colour</td><td>theme default</td><td>CSS colour</td></tr>
+            <tr><td>Description font size</td><td><code>0.85rem</code></td><td>CSS font-size</td></tr>
+            <tr><td>Description colour</td><td>theme default</td><td>CSS colour</td></tr>
+            <tr><td>Button color</td><td>theme default</td><td>CSS colour for the create button background</td></tr>
+            <tr><td>Button font color</td><td>theme default</td><td>CSS colour for the create button text</td></tr>
+            <tr><td>Button font size</td><td><code>0.85rem</code></td><td>CSS font-size</td></tr>
+          </tbody>
+        </table>
+        <p>A <strong>Reset appearance to defaults</strong> button restores all appearance settings at once.</p>
+
+        <h3 id="dropdown-lists">Manage dropdown lists</h3>
+        <p>These lists back the <strong>vendor</strong>, <strong>model</strong>, and <strong>team</strong> fields in note creation forms. Three lists are maintained: Vendors / Providers, Models, and Teams.</p>
+        <ul>
+          <li>Use the <strong>Add</strong> button (or press <kbd>Enter</kbd>) to add a new value to a list.</li>
+          <li>Use the <strong>Remove</strong> button beside any item to delete it.</li>
+          <li>Alternatively, choose <strong>＋ Add new…</strong> from within any creation form to add a value on the fly without opening Settings.</li>
+        </ul>
       </section>
 
       <!-- ─── Frontmatter ───────────────────────────────────────── -->
@@ -794,8 +834,8 @@ SORT review_date ASC
       <hr>
 
       <p style="text-align:center; color:var(--text-muted); font-size:0.88rem; margin-top: 2rem;">
-        AIGIS Governance · Obsidian Plugin · v0.1.0 · MIT License<br>
-        Adapted from <a href="https://dialogisticindustries.com/solutions/software/aigis/" target="_blank">AIGIS by Dialogistic Industries</a>
+        AIGIS — AI Governance and Infrastructure Suite for Obsidian · v0.1.2 · MIT License<br>
+        By <a href="https://dialogisticindustries.com/" target="_blank">Dialogistic Industries</a>
       </p>
 
     </div><!-- /content -->

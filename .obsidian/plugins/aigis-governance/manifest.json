@@ -1,10 +1,10 @@
 {
   "id": "aigis-governance",
-  "name": "AIGIS Governance",
-  "version": "0.1.0",
+  "name": "AI Governance and Infrastructure Suite for Obsidian",
+  "version": "0.1.2",
   "minAppVersion": "1.5.0",
-  "description": "A stripped-down AIGIS-style governance workspace for Obsidian.",
-  "author": "GitHub Copilot",
-  "authorUrl": "https://github.com/features/copilot",
+  "description": "A lightweight version of AIGIS: The AI Governance and Infrastructure Suite built specifically for Obsidian. It gives you a centralized command center for every AI model you deploy, with a formal inventory, prompts, a skills repository for reusable agent capabilities, guardrails, and an audit trail.",
+  "author": "Dialogistic Industries",
+  "authorUrl": "https://dialogisticindustries.com/",
   "isDesktopOnly": false
 }

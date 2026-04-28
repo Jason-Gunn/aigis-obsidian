@@ -1,6 +1,8 @@
-# AIGIS Obsidian MVP
+# AIGIS for Obsidian
 
-This workspace is a self-contained Obsidian vault with a stripped-down AIGIS-style governance plugin.
+A lightweight version of [AIGIS: The AI Governance and Infrastructure Suite](https://dialogisticindustries.com/solutions/software/aigis/) built for Obsidian. It gives you a centralized command center for every AI model you deploy, with inventories for prompts, agent skills, workflows, policies and more.
+
+> This is currently in beta. I've been using it and I like it well enough, but mileage my vary.
 
 ## What is included
 
@@ -9,7 +11,7 @@ This workspace is a self-contained Obsidian vault with a stripped-down AIGIS-sty
 - Starter governance folders under `AIGIS/`
 - A vault bootstrap flow that creates and maintains a dashboard and audit log
 
-## MVP scope
+## Scope
 
 This version focuses on the parts of AIGIS that map naturally onto Obsidian:
 
