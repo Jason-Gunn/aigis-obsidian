@@ -24,17 +24,29 @@ This version focuses on the parts of AIGIS that map naturally onto Obsidian:
 
 It does not attempt to reproduce the original WordPress analytics, budgets, REST API, or live provider sandbox.
 
-## Run locally
+## Installation
 
-1. Open this folder as an Obsidian vault.
-2. In a terminal, change into `.obsidian/plugins/aigis-governance`.
-3. Run `npm install`.
-4. Run `npm run build`.
-5. In Obsidian, enable the community plugin `AIGIS Governance`.
-6. Run the command `AIGIS: Bootstrap governance vault`.
+The compiled plugin (`main.js`) is included in the repository — no build step needed for standard use.
+
+1. Download or clone this repository and unzip if needed.
+2. Open Obsidian → **Open another vault** → **Open folder as vault** → select the `AIGIS-Obsidian` folder.
+3. Go to **Settings → Community Plugins**. If prompted, disable Restricted Mode. Find **AIGIS Governance** and enable it.
+4. Open the command palette (`Ctrl/Cmd + P`) and run **AIGIS: Bootstrap governance vault**.
+
+A `User Guide.md` note is created inside the vault as part of bootstrap.
+
+## Adding to an existing vault
+
+Copy these three files into `<your-vault>/.obsidian/plugins/aigis-governance/`:
+
+- `main.js`
+- `manifest.json`
+- `styles.css`
+
+Then enable the plugin and run the bootstrap command.
 
 ## Development
 
-- `npm run dev` watches and rebuilds the plugin.
-- The plugin source lives in `.obsidian/plugins/aigis-governance/src/main.ts`.
-- The built output is `.obsidian/plugins/aigis-governance/main.js`.
+- `npm install` then `npm run dev` watches and rebuilds on save.
+- Source: `.obsidian/plugins/aigis-governance/src/main.ts`
+- Output: `.obsidian/plugins/aigis-governance/main.js`

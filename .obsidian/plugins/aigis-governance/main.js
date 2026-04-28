@@ -29,7 +29,13 @@ var DEFAULT_SETTINGS = {
   rootFolder: "AIGIS",
   auditFolderName: "Audit",
   dashboardNoteName: "Dashboard.md",
-  autoOpenConsole: true
+  autoOpenConsole: true,
+  hiddenModules: [],
+  customLists: {
+    vendors: ["Anthropic", "Cohere", "Google DeepMind", "Meta", "Mistral AI", "OpenAI"],
+    models: ["claude-opus-4", "claude-sonnet-4", "gemini-2.0-flash", "gpt-4.1", "gpt-4o", "llama3:8b", "o3"],
+    teams: ["AI Governance Office", "Compliance", "Engineering", "Product Operations"]
+  }
 };
 var MODULES = {
   inventory: {
@@ -39,8 +45,8 @@ var MODULES = {
     description: "Register models, agents, and governed AI systems.",
     fields: [
       { key: "title", label: "Record title", type: "text", required: true, placeholder: "Customer Support Agent" },
-      { key: "vendor", label: "Vendor", type: "text", placeholder: "OpenAI" },
-      { key: "model", label: "Model / version", type: "text", placeholder: "gpt-4.1" },
+      { key: "vendor", label: "Vendor", type: "managed-select", listKey: "vendors" },
+      { key: "model", label: "Model / version", type: "managed-select", listKey: "models" },
       {
         key: "integration_type",
         label: "Integration type",
@@ -63,7 +69,7 @@ var MODULES = {
           high: "High"
         }
       },
-      { key: "owner", label: "Owner", type: "text", placeholder: "AI Governance Office" },
+      { key: "owner", label: "Owner", type: "managed-select", listKey: "teams" },
       {
         key: "status",
         label: "Status",
@@ -96,9 +102,9 @@ var MODULES = {
           production: "Production"
         }
       },
-      { key: "provider", label: "Provider", type: "text", placeholder: "OpenAI" },
-      { key: "target_model", label: "Target model", type: "text", placeholder: "gpt-4.1-mini" },
-      { key: "owner", label: "Owner", type: "text", placeholder: "Prompt Engineering" },
+      { key: "provider", label: "Provider", type: "managed-select", listKey: "vendors" },
+      { key: "target_model", label: "Target model", type: "managed-select", listKey: "models" },
+      { key: "owner", label: "Owner", type: "managed-select", listKey: "teams" },
       { key: "goal", label: "Goal", type: "textarea", placeholder: "Summarise policy updates for non-technical reviewers." }
     ]
   },
@@ -121,7 +127,7 @@ var MODULES = {
           retired: "Retired"
         }
       },
-      { key: "owner", label: "Owner", type: "text", placeholder: "Compliance Team" },
+      { key: "owner", label: "Owner", type: "managed-select", listKey: "teams" },
       { key: "effective_date", label: "Effective date", type: "date" },
       { key: "review_date", label: "Review date", type: "date" }
     ]
@@ -133,7 +139,7 @@ var MODULES = {
     description: "Document approved AI-assisted workflows and review points.",
     fields: [
       { key: "title", label: "Workflow title", type: "text", required: true, placeholder: "Model Deployment Approval" },
-      { key: "owner", label: "Owner", type: "text", placeholder: "Product Operations" },
+      { key: "owner", label: "Owner", type: "managed-select", listKey: "teams" },
       { key: "human_oversight", label: "Human oversight requirement", type: "text", placeholder: "Required before production release" },
       {
         key: "mermaid",
@@ -152,7 +158,7 @@ var MODULES = {
     fields: [
       { key: "title", label: "Skill title", type: "text", required: true, placeholder: "Complaint triage" },
       { key: "version", label: "Version", type: "text", defaultValue: "0.1.0" },
-      { key: "team", label: "Owning team", type: "text", placeholder: "Customer Operations" },
+      { key: "team", label: "Owning team", type: "managed-select", listKey: "teams" },
       { key: "trigger_phrases", label: "Trigger phrases", type: "textarea", placeholder: "customer complaint\nrefund dispute" },
       { key: "output_contract", label: "Output contract", type: "textarea", placeholder: "Return sections: Risk Rating, Next Action, Escalation Path." }
     ]
@@ -192,6 +198,111 @@ var MODULES = {
     ]
   }
 };
+var VAULT_MANUAL_CONTENT = `# AIGIS Governance \u2014 User Guide
+
+> A structured AI governance layer. Register AI systems, manage prompts and policies, document workflows, store governed skills, and track incidents \u2014 all as Markdown notes.
+
+---
+
+## Quick Start
+
+1. Open the command palette (\`Ctrl/Cmd + P\`)
+2. Run **AIGIS: Bootstrap governance vault**
+3. Open the **AIGIS Console** from the ribbon (shield icon)
+
+---
+
+## Modules
+
+### Inventory
+Register every AI model, agent, or governed system in use. This is the foundation \u2014 all other modules should link back to an inventory record.
+
+**Key fields:** vendor, model, integration type, risk level, owner, status
+
+### Prompts
+Store governed prompt artefacts with versioning and a lifecycle stage.
+
+**Stages:** Development \u2192 Staging \u2192 Production
+
+**Key fields:** version, lifecycle stage, provider, target model, goal
+
+### Policies
+Maintain formal AI-use policies. The Dashboard surfaces upcoming review dates.
+
+**Key fields:** status (draft / approved / retired), version, owner, effective date, review date
+
+### Workflows
+Document approved AI-assisted processes. Includes a Mermaid diagram block.
+
+**Key fields:** owner, human oversight requirement, Mermaid diagram
+
+### Skills
+Store reusable governed capabilities \u2014 instruction bundles with trigger conditions and an output contract.
+
+**Key fields:** version, team, trigger phrases, output contract
+
+### Incidents
+Track events requiring investigation: prompt injection, PII leakage, misuse, or unexpected behaviour.
+
+**Severity:** low / medium / high / critical
+
+**Status:** open \u2192 investigating \u2192 resolved
+
+---
+
+## Console Panel
+
+Open from the ribbon (shield icon) or via **AIGIS: Open governance console**.
+
+- The **eye icon** on each module card toggles it hidden or visible
+- Hidden modules collapse to a slim header row
+- **Bootstrap vault**, **Open dashboard**, and **Open audit log** buttons are at the bottom of the panel
+
+---
+
+## Audit Log
+
+\`AIGIS/Audit/Audit Log.md\` is append-only. The plugin writes a timestamped line for every note created and every bootstrap. Do not delete lines from this file manually.
+
+---
+
+## Dropdown Lists
+
+Vendor, model, and team fields in note creation forms are backed by editable lists.
+
+- Go to **Settings \u2192 AIGIS Governance \u2192 Manage dropdown lists** to add or remove values
+- Or choose **\uFF0B Add new\u2026** inside any creation form to add a value on the fly
+
+---
+
+## Commands
+
+| Command | Action |
+|---|---|
+| Bootstrap governance vault | Creates folders, dashboard, audit log, and this guide |
+| Open governance console | Opens the side panel |
+| Create Inventory record | New inventory note |
+| Create Prompt | New prompt note |
+| Create Policy | New policy note |
+| Create Workflow | New workflow note |
+| Create Skill | New skill note |
+| Create Incident | New incident note |
+
+---
+
+## Settings
+
+**Settings \u2192 AIGIS Governance**
+
+| Setting | Default | Purpose |
+|---|---|---|
+| Root folder | \`AIGIS\` | Top-level vault folder the plugin manages |
+| Audit folder | \`Audit\` | Sub-folder for the audit log |
+| Dashboard note | \`Dashboard.md\` | Auto-generated dashboard filename |
+| Auto-open console | on | Open side panel on startup |
+| Console visibility | \u2014 | Toggle which modules appear in the console |
+| Manage dropdown lists | \u2014 | Add/remove vendors, models, and teams |
+`;
 var AigisGovernancePlugin = class extends import_obsidian.Plugin {
   async onload() {
     await this.loadSettings();
@@ -253,7 +364,16 @@ var AigisGovernancePlugin = class extends import_obsidian.Plugin {
     await this.refreshConsoleViews();
   }
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const saved = await this.loadData();
+    this.settings = {
+      ...DEFAULT_SETTINGS,
+      ...saved,
+      hiddenModules: Array.isArray(saved?.hiddenModules) ? saved.hiddenModules : [],
+      customLists: {
+        ...DEFAULT_SETTINGS.customLists,
+        ...saved?.customLists ?? {}
+      }
+    };
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -275,7 +395,7 @@ var AigisGovernancePlugin = class extends import_obsidian.Plugin {
   }
   async createModuleNote(module2) {
     await this.ensureVaultStructure();
-    const draft = await EntryModal.open(this.app, MODULES[module2]);
+    const draft = await EntryModal.open(this.app, MODULES[module2], this);
     if (!draft) {
       return;
     }
@@ -440,6 +560,10 @@ ${lines.join("\n")}
       this.getDashboardPath(),
       "# AIGIS Dashboard\n\nRun the bootstrap command to populate this dashboard.\n"
     );
+    await this.ensureFile(
+      (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/User Guide.md`),
+      VAULT_MANUAL_CONTENT
+    );
   }
   async ensureFolder(path) {
     if (!this.app.vault.getAbstractFileByPath(path)) {
@@ -552,6 +676,15 @@ ${lines.join("\n")}
   isManagedPath(path) {
     return (0, import_obsidian.normalizePath)(path).startsWith(`${this.getRootFolder()}/`) || (0, import_obsidian.normalizePath)(path) === this.getRootFolder();
   }
+  async toggleModuleVisibility(module2) {
+    const idx = this.settings.hiddenModules.indexOf(module2);
+    if (idx >= 0) {
+      this.settings.hiddenModules.splice(idx, 1);
+    } else {
+      this.settings.hiddenModules.push(module2);
+    }
+    await this.saveSettings();
+  }
 };
 var AigisConsoleView = class extends import_obsidian.ItemView {
   constructor(leaf, plugin) {
@@ -576,42 +709,52 @@ var AigisConsoleView = class extends import_obsidian.ItemView {
     contentEl.addClass("aigis-console-view");
     const header = contentEl.createDiv({ cls: "aigis-console-header" });
     header.createEl("h2", { text: "AIGIS Console" });
-    header.createEl("p", { text: "Governance note creation, counts, and quick links for this vault." });
-    const actions = contentEl.createDiv({ cls: "aigis-console-actions" });
-    const bootstrapButton = actions.createEl("button", { text: "Bootstrap vault" });
-    bootstrapButton.addEventListener("click", () => void this.plugin.bootstrapWorkspace());
-    const dashboardButton = actions.createEl("button", { text: "Open dashboard" });
-    dashboardButton.addEventListener("click", () => void this.plugin.openManagedNote(this.plugin.getDashboardPath()));
-    const auditButton = actions.createEl("button", { text: "Open audit log" });
-    auditButton.addEventListener("click", () => void this.plugin.openManagedNote(this.plugin.getAuditLogPath()));
+    header.createEl("p", { text: "Governance note creation, counts, and quick links for this vault.", cls: "aigis-console-subtitle" });
     const grid = contentEl.createDiv({ cls: "aigis-console-grid" });
     const entries = Object.entries(MODULES);
     for (const [module2, definition] of entries) {
-      const card = grid.createDiv({ cls: "aigis-console-card" });
-      card.createEl("h3", { text: definition.label });
-      card.createEl("p", { text: definition.description });
-      card.createSpan({ cls: "aigis-console-count", text: String(this.plugin.countModuleNotes(module2)) });
-      const folderLinkList = card.createEl("ul");
-      folderLinkList.createEl("li", { text: `Folder: ${this.plugin.getModuleFolder(module2)}` });
-      folderLinkList.createEl("li", { text: `Create a new ${definition.entryLabel.toLowerCase()} from here.` });
-      const createButton = card.createEl("button", { text: `Create ${definition.entryLabel}` });
-      createButton.addEventListener("click", () => void this.plugin.createModuleNote(module2));
+      const isHidden = this.plugin.settings.hiddenModules.includes(module2);
+      const card = grid.createDiv({ cls: `aigis-console-card${isHidden ? " aigis-console-card--hidden" : ""}` });
+      const cardHeader = card.createDiv({ cls: "aigis-console-card-header" });
+      cardHeader.createEl("h3", { text: definition.label });
+      const toggleBtn = cardHeader.createEl("button", { cls: "aigis-console-card-toggle" });
+      toggleBtn.setAttribute("aria-label", isHidden ? "Show module" : "Hide module");
+      toggleBtn.setAttribute("title", isHidden ? "Show" : "Hide");
+      toggleBtn.innerHTML = isHidden ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+      toggleBtn.addEventListener("click", async () => {
+        await this.plugin.toggleModuleVisibility(module2);
+        await this.render();
+      });
+      if (!isHidden) {
+        card.createEl("p", { text: definition.description, cls: "aigis-console-card-desc" });
+        card.createSpan({ cls: "aigis-console-count", text: String(this.plugin.countModuleNotes(module2)) });
+        const createButton = card.createEl("button", { text: `Create ${definition.entryLabel}`, cls: "mod-cta aigis-console-create-btn" });
+        createButton.addEventListener("click", () => void this.plugin.createModuleNote(module2));
+      }
     }
+    const actions = contentEl.createDiv({ cls: "aigis-console-actions" });
+    const bootstrapButton = actions.createEl("button", { text: "Bootstrap vault", cls: "aigis-console-action-btn" });
+    bootstrapButton.addEventListener("click", () => void this.plugin.bootstrapWorkspace());
+    const dashboardButton = actions.createEl("button", { text: "Open dashboard", cls: "aigis-console-action-btn" });
+    dashboardButton.addEventListener("click", () => void this.plugin.openManagedNote(this.plugin.getDashboardPath()));
+    const auditButton = actions.createEl("button", { text: "Open audit log", cls: "aigis-console-action-btn" });
+    auditButton.addEventListener("click", () => void this.plugin.openManagedNote(this.plugin.getAuditLogPath()));
   }
 };
 var EntryModal = class _EntryModal extends import_obsidian.Modal {
-  constructor(app, definition, onResolve) {
+  constructor(app, definition, plugin, onResolve) {
     super(app);
     this.definition = definition;
+    this.plugin = plugin;
     this.onResolve = onResolve;
     this.resolved = false;
     this.values = Object.fromEntries(
       definition.fields.map((field) => [field.key, field.defaultValue ?? ""])
     );
   }
-  static open(app, definition) {
+  static open(app, definition, plugin) {
     return new Promise((resolve) => {
-      const modal = new _EntryModal(app, definition, resolve);
+      const modal = new _EntryModal(app, definition, plugin, resolve);
       modal.open();
     });
   }
@@ -639,6 +782,43 @@ var EntryModal = class _EntryModal extends import_obsidian.Modal {
         select.value = this.values[field.key] ?? Object.keys(field.options ?? {})[0] ?? "";
         select.addEventListener("change", () => {
           this.values[field.key] = select.value;
+        });
+      } else if (field.type === "managed-select" && field.listKey) {
+        const listKey = field.listKey;
+        const select = fieldEl.createEl("select");
+        select.createEl("option", { text: "\u2014 Select \u2014", value: "" });
+        for (const item of this.plugin.settings.customLists[listKey]) {
+          select.createEl("option", { text: item, value: item });
+        }
+        select.createEl("option", { text: "\uFF0B Add new\u2026", value: "__add_new__" });
+        select.value = this.values[field.key] ?? "";
+        select.addEventListener("change", () => {
+          void (async () => {
+            if (select.value === "__add_new__") {
+              const newVal = window.prompt(`Add a new ${field.label.toLowerCase()}:`);
+              if (newVal?.trim()) {
+                const trimmed = newVal.trim();
+                const customList = this.plugin.settings.customLists[listKey];
+                if (!customList.includes(trimmed)) {
+                  customList.push(trimmed);
+                  customList.sort();
+                  await this.plugin.saveSettings();
+                }
+                select.empty();
+                select.createEl("option", { text: "\u2014 Select \u2014", value: "" });
+                for (const item of this.plugin.settings.customLists[listKey]) {
+                  select.createEl("option", { text: item, value: item });
+                }
+                select.createEl("option", { text: "\uFF0B Add new\u2026", value: "__add_new__" });
+                select.value = trimmed;
+                this.values[field.key] = trimmed;
+              } else {
+                select.value = this.values[field.key] ?? "";
+              }
+            } else {
+              this.values[field.key] = select.value;
+            }
+          })();
         });
       } else {
         const input = fieldEl.createEl("input", { type: field.type === "date" ? "date" : "text" });
@@ -713,6 +893,80 @@ var AigisSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       });
     });
+    containerEl.createEl("h3", { text: "Console visibility" });
+    containerEl.createEl("p", {
+      text: "Toggle which modules appear as cards in the AIGIS Console.",
+      cls: "aigis-settings-desc"
+    });
+    const moduleEntries = Object.entries(MODULES);
+    for (const [module2, definition] of moduleEntries) {
+      new import_obsidian.Setting(containerEl).setName(definition.label).addToggle((toggle) => {
+        toggle.setValue(!this.plugin.settings.hiddenModules.includes(module2));
+        toggle.onChange(async (value) => {
+          if (value) {
+            this.plugin.settings.hiddenModules = this.plugin.settings.hiddenModules.filter((m) => m !== module2);
+          } else if (!this.plugin.settings.hiddenModules.includes(module2)) {
+            this.plugin.settings.hiddenModules.push(module2);
+          }
+          await this.plugin.saveSettings();
+          await this.plugin.refreshConsoleViews();
+        });
+      });
+    }
+    containerEl.createEl("h3", { text: "Manage dropdown lists" });
+    containerEl.createEl("p", {
+      text: "These lists populate vendor, model, and team fields in note creation forms.",
+      cls: "aigis-settings-desc"
+    });
+    containerEl.createEl("h4", { text: "Vendors / Providers" });
+    this.renderListManager(containerEl, "vendors", "e.g. OpenAI");
+    containerEl.createEl("h4", { text: "Models" });
+    this.renderListManager(containerEl, "models", "e.g. gpt-4.1");
+    containerEl.createEl("h4", { text: "Teams" });
+    this.renderListManager(containerEl, "teams", "e.g. AI Governance Office");
+  }
+  renderListManager(containerEl, listKey, placeholder) {
+    const section = containerEl.createDiv({ cls: "aigis-list-manager" });
+    const renderItems = () => {
+      section.empty();
+      const currentItems = this.plugin.settings.customLists[listKey];
+      if (currentItems.length === 0) {
+        section.createEl("p", { text: "No items yet.", cls: "aigis-list-empty" });
+      } else {
+        for (const item of [...currentItems]) {
+          const row = section.createDiv({ cls: "aigis-list-row" });
+          row.createSpan({ text: item });
+          const removeBtn = row.createEl("button", { text: "Remove", cls: "aigis-list-remove-btn" });
+          removeBtn.addEventListener("click", async () => {
+            this.plugin.settings.customLists[listKey] = this.plugin.settings.customLists[listKey].filter((i) => i !== item);
+            await this.plugin.saveSettings();
+            renderItems();
+          });
+        }
+      }
+      const addRow = section.createDiv({ cls: "aigis-list-add-row" });
+      const addInput = addRow.createEl("input", { type: "text", placeholder, cls: "aigis-list-input" });
+      const addBtn = addRow.createEl("button", { text: "Add", cls: "aigis-list-add-btn" });
+      const doAdd = async () => {
+        const val = addInput.value.trim();
+        if (!val) return;
+        const list = this.plugin.settings.customLists[listKey];
+        if (!list.includes(val)) {
+          list.push(val);
+          list.sort();
+          await this.plugin.saveSettings();
+        }
+        renderItems();
+      };
+      addBtn.addEventListener("click", () => void doAdd());
+      addInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          void doAdd();
+        }
+      });
+    };
+    renderItems();
   }
 };
 function slugify(value) {
