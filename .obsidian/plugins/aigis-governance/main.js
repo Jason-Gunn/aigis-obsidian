@@ -25,6 +25,7 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 var VIEW_TYPE_AIGIS_CONSOLE = "aigis-console";
+var MANAGED_GUIDE_NAME = "User Guide.md";
 var ALL_MODULES = ["inventory", "prompts", "policies", "workflows", "skills", "incidents"];
 var DEFAULT_CONSOLE_STYLE = {
   cardBg: "",
@@ -106,7 +107,7 @@ var MODULES = {
     label: "Prompts",
     entryLabel: "Prompt",
     folder: "Prompts",
-    description: "Track governed prompt artifacts and lifecycle stage.",
+    description: "Track governed prompt artifacts and lifecycle stages.",
     fields: [
       { key: "title", label: "Prompt title", type: "text", required: true, placeholder: "Policy Summariser" },
       { key: "version", label: "Version", type: "text", defaultValue: "0.1.0" },
@@ -217,9 +218,9 @@ var MODULES = {
     ]
   }
 };
-var VAULT_MANUAL_CONTENT = `# AIGIS Governance \u2014 User Guide
+var VAULT_MANUAL_CONTENT = `# AIGIS Governance User Guide
 
-> A structured AI governance layer. Register AI systems, manage prompts and policies, document workflows, store governed skills, and track incidents \u2014 all as Markdown notes.
+> A structured AI governance layer. Register AI systems, manage prompts and policies, document workflows, store governed skills, and track incidents, all as Markdown notes.
 
 ---
 
@@ -234,54 +235,54 @@ var VAULT_MANUAL_CONTENT = `# AIGIS Governance \u2014 User Guide
 ## Modules
 
 ### Inventory
-Register every AI model, agent, or governed system in use. This is the foundation \u2014 all other modules should link back to an inventory record.
+Register every AI model, agent, or governed system in use. This is the foundation. All other modules should link back to an inventory record.
 
 **Key fields:** vendor, model, integration type, risk level, owner, status
 
 ### Prompts
-Store governed prompt artefacts with versioning and a lifecycle stage.
+Store governed prompt artifacts with versioning and lifecycle stages.
 
-**Stages:** Development \u2192 Staging \u2192 Production
+**Stages:** Development -> Staging -> Production
 
 **Key fields:** version, lifecycle stage, provider, target model, goal
 
 ### Policies
-Maintain formal AI-use policies. The Dashboard surfaces upcoming review dates.
+Maintain formal AI use policies. The dashboard surfaces upcoming review dates.
 
 **Key fields:** status (draft / approved / retired), version, owner, effective date, review date
 
 ### Workflows
-Document approved AI-assisted processes. Includes a Mermaid diagram block.
+Document approved AI-assisted processes. Each note includes a Mermaid diagram block.
 
 **Key fields:** owner, human oversight requirement, Mermaid diagram
 
 ### Skills
-Store reusable governed capabilities \u2014 instruction bundles with trigger conditions and an output contract.
+Store reusable governed capabilities. These are instruction bundles with trigger conditions and an output contract.
 
 **Key fields:** version, team, trigger phrases, output contract
 
 ### Incidents
-Track events requiring investigation: prompt injection, PII leakage, misuse, or unexpected behaviour.
+Track events that require investigation: prompt injection, PII leakage, misuse, or unexpected behavior.
 
 **Severity:** low / medium / high / critical
 
-**Status:** open \u2192 investigating \u2192 resolved
+**Status:** open -> investigating -> resolved
 
 ---
 
 ## Console Panel
 
-Open from the ribbon (shield icon) or via **AIGIS: Open governance console**.
+Open from the ribbon (shield icon) or by running **AIGIS: Open governance console**.
 
-- The **eye icon** on each module card toggles it hidden or visible
-- Hidden modules collapse to a slim header row
-- **Bootstrap vault**, **Open dashboard**, and **Open audit log** buttons are at the bottom of the panel
+- One card per visible module shows the live note count and a **Create** button.
+- Module visibility is controlled in **Settings -> AIGIS Governance -> Console visibility**.
+- **Bootstrap vault**, **Open dashboard**, and **Open audit log** buttons are at the bottom of the panel.
 
 ---
 
 ## Audit Log
 
-\`AIGIS/Audit/Audit Log.md\` is append-only. The plugin writes a timestamped line for every note created and every bootstrap. Do not delete lines from this file manually.
+\`AIGIS/Audit/Audit Log.md\` is a plain Markdown log written by the plugin. It appends a timestamped line for each bootstrap action and each note created through the plugin.
 
 ---
 
@@ -289,8 +290,8 @@ Open from the ribbon (shield icon) or via **AIGIS: Open governance console**.
 
 Vendor, model, and team fields in note creation forms are backed by editable lists.
 
-- Go to **Settings \u2192 AIGIS Governance \u2192 Manage dropdown lists** to add or remove values
-- Or choose **\uFF0B Add new\u2026** inside any creation form to add a value on the fly
+- Go to **Settings -> AIGIS Governance -> Manage dropdown lists** to add or remove values.
+- Or choose **+ Add new...** inside any creation form to add a value on the fly.
 
 ---
 
@@ -298,29 +299,30 @@ Vendor, model, and team fields in note creation forms are backed by editable lis
 
 | Command | Action |
 |---|---|
-| Bootstrap governance vault | Creates folders, dashboard, audit log, and this guide |
+| Bootstrap governance vault | Creates any missing folders and files, refreshes the dashboard, and appends an audit entry |
 | Open governance console | Opens the side panel |
-| Create Inventory record | New inventory note |
-| Create Prompt | New prompt note |
-| Create Policy | New policy note |
-| Create Workflow | New workflow note |
-| Create Skill | New skill note |
-| Create Incident | New incident note |
+| Create Inventory record note | Opens the inventory form |
+| Create Prompt note | Opens the prompt form |
+| Create Policy note | Opens the policy form |
+| Create Workflow note | Opens the workflow form |
+| Create Skill note | Opens the skill form |
+| Create Incident note | Opens the incident form |
 
 ---
 
 ## Settings
 
-**Settings \u2192 AIGIS Governance**
+**Settings -> AIGIS Governance**
 
 | Setting | Default | Purpose |
 |---|---|---|
 | Root folder | \`AIGIS\` | Top-level vault folder the plugin manages |
 | Audit folder | \`Audit\` | Sub-folder for the audit log |
 | Dashboard note | \`Dashboard.md\` | Auto-generated dashboard filename |
-| Auto-open console | on | Open side panel on startup |
-| Console visibility | \u2014 | Toggle which modules appear in the console |
-| Manage dropdown lists | \u2014 | Add/remove vendors, models, and teams |
+| Auto-open console | on | Open the side panel on startup |
+| Console visibility | all modules visible | Toggle which modules appear in the console |
+| Card order | Inventory, Prompts, Policies, Workflows, Skills, Incidents | Reorder the console cards |
+| Manage dropdown lists | defaults loaded | Add or remove vendors, models, and teams |
 `;
 var AigisGovernancePlugin = class extends import_obsidian.Plugin {
   async onload() {
@@ -387,8 +389,11 @@ var AigisGovernancePlugin = class extends import_obsidian.Plugin {
     this.settings = {
       ...DEFAULT_SETTINGS,
       ...saved,
-      hiddenModules: Array.isArray(saved?.hiddenModules) ? saved.hiddenModules : [],
-      moduleOrder: Array.isArray(saved?.moduleOrder) && saved.moduleOrder.length > 0 ? saved.moduleOrder : [...ALL_MODULES],
+      rootFolder: sanitizeRelativeFolderPath(saved?.rootFolder, DEFAULT_SETTINGS.rootFolder),
+      auditFolderName: sanitizeRelativeFolderPath(saved?.auditFolderName, DEFAULT_SETTINGS.auditFolderName),
+      dashboardNoteName: sanitizeDashboardNoteName(saved?.dashboardNoteName, DEFAULT_SETTINGS.dashboardNoteName),
+      hiddenModules: sanitizeModuleList(saved?.hiddenModules),
+      moduleOrder: sanitizeModuleOrder(saved?.moduleOrder),
       customLists: {
         ...DEFAULT_SETTINGS.customLists,
         ...saved?.customLists ?? {}
@@ -585,7 +590,7 @@ ${lines.join("\n")}
       "# AIGIS Dashboard\n\nRun the bootstrap command to populate this dashboard.\n"
     );
     await this.ensureFile(
-      (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/User Guide.md`),
+      (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/${MANAGED_GUIDE_NAME}`),
       VAULT_MANUAL_CONTENT
     );
   }
@@ -626,7 +631,7 @@ ${lines.join("\n")}
       "",
       "## Quick Links",
       `- [[${this.getAuditLogPath()}|Audit Log]]`,
-      `- [[${this.getRootFolder()}/README|Workspace Guide]]`,
+      `- [[${this.getRootFolder()}/${MANAGED_GUIDE_NAME}|User Guide]]`,
       "",
       "## Upcoming Policy Reviews",
       ...policyHeadlines.length > 0 ? policyHeadlines : ["- No policy review dates found yet."],
@@ -663,8 +668,10 @@ ${lines.join("\n")}
       return;
     }
     const timestamp = (/* @__PURE__ */ new Date()).toISOString();
-    const metadataLine = metadata ? ` | ${Object.entries(metadata).map(([key, value]) => `${key}=${value}`).join(", ")}` : "";
-    await this.app.vault.append(auditFile, `- ${timestamp} | ${action} | ${summary}${metadataLine}
+    const safeAction = sanitizeAuditValue(action);
+    const safeSummary = sanitizeAuditValue(summary);
+    const metadataLine = metadata ? ` | ${Object.entries(metadata).map(([key, value]) => `${sanitizeAuditValue(key)}=${sanitizeAuditValue(value)}`).join(", ")}` : "";
+    await this.app.vault.append(auditFile, `- ${timestamp} | ${safeAction} | ${safeSummary}${metadataLine}
 `);
   }
   countModuleNotes(module2) {
@@ -683,16 +690,16 @@ ${lines.join("\n")}
     }));
   }
   getRootFolder() {
-    return (0, import_obsidian.normalizePath)(this.settings.rootFolder);
+    return sanitizeRelativeFolderPath(this.settings.rootFolder, DEFAULT_SETTINGS.rootFolder);
   }
   getAuditFolder() {
-    return (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/${this.settings.auditFolderName}`);
+    return (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/${sanitizeRelativeFolderPath(this.settings.auditFolderName, DEFAULT_SETTINGS.auditFolderName)}`);
   }
   getAuditLogPath() {
     return (0, import_obsidian.normalizePath)(`${this.getAuditFolder()}/Audit Log.md`);
   }
   getDashboardPath() {
-    return (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/${this.settings.dashboardNoteName}`);
+    return (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/${sanitizeDashboardNoteName(this.settings.dashboardNoteName, DEFAULT_SETTINGS.dashboardNoteName)}`);
   }
   getModuleFolder(module2) {
     return (0, import_obsidian.normalizePath)(`${this.getRootFolder()}/${MODULES[module2].folder}`);
@@ -990,23 +997,23 @@ var AigisSettingTab = class extends import_obsidian.PluginSettingTab {
     renderOrder();
     containerEl.createEl("h3", { text: "Console appearance" });
     containerEl.createEl("p", {
-      text: "Customise font sizes, colours, and borders. Leave blank to use the theme default.",
+      text: "Customize font sizes, colors, and borders. Leave blank to use the theme default.",
       cls: "aigis-settings-desc"
     });
     const styleFields = [
-      { key: "cardBg", name: "Card background", desc: "CSS colour, e.g. #1e2030", placeholder: "theme default" },
+      { key: "cardBg", name: "Card background", desc: "CSS color, e.g. #1e2030", placeholder: "theme default" },
       { key: "cardPadding", name: "Card padding", desc: "CSS spacing, e.g. 0.9rem or 12px", placeholder: "0.9rem" },
-      { key: "cardBorderColor", name: "Card border colour", desc: "CSS colour, e.g. #444", placeholder: "theme default" },
+      { key: "cardBorderColor", name: "Card border color", desc: "CSS color, e.g. #444", placeholder: "theme default" },
       { key: "cardBorderWidth", name: "Card border width", desc: "CSS length, e.g. 1px or 2px", placeholder: "1px" },
       { key: "cardBorderRadius", name: "Card border radius", desc: "CSS length, e.g. 12px or 0.5rem", placeholder: "12px" },
       { key: "titleFontSize", name: "Title font size", desc: "CSS font-size, e.g. 1rem or 14px", placeholder: "1rem" },
-      { key: "titleColor", name: "Title colour", desc: "CSS colour, e.g. #fff", placeholder: "theme default" },
+      { key: "titleColor", name: "Title color", desc: "CSS color, e.g. #fff", placeholder: "theme default" },
       { key: "countFontSize", name: "Count font size", desc: "The note count shown in each card header", placeholder: "1.1rem" },
-      { key: "countColor", name: "Count colour", desc: "CSS colour, e.g. #aaa", placeholder: "theme default" },
+      { key: "countColor", name: "Count color", desc: "CSS color, e.g. #aaa", placeholder: "theme default" },
       { key: "descFontSize", name: "Description font size", desc: "The module description text", placeholder: "0.85rem" },
-      { key: "descColor", name: "Description colour", desc: "CSS colour", placeholder: "theme default" },
-      { key: "btnBg", name: "Button color", desc: "CSS colour for the create button background, e.g. #5c6bc0", placeholder: "theme default" },
-      { key: "btnColor", name: "Button font color", desc: "CSS colour for the create button text, e.g. #fff", placeholder: "theme default" },
+      { key: "descColor", name: "Description color", desc: "CSS color", placeholder: "theme default" },
+      { key: "btnBg", name: "Button color", desc: "CSS color for the create button background, e.g. #5c6bc0", placeholder: "theme default" },
+      { key: "btnColor", name: "Button text color", desc: "CSS color for the create button text, e.g. #fff", placeholder: "theme default" },
       { key: "btnFontSize", name: "Button font size", desc: "Create button in each card", placeholder: "0.85rem" }
     ];
     for (const field of styleFields) {
@@ -1087,4 +1094,37 @@ var AigisSettingTab = class extends import_obsidian.PluginSettingTab {
 };
 function slugify(value) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "untitled";
+}
+function sanitizeModuleList(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const valid = value.filter((item) => ALL_MODULES.includes(item));
+  return [...new Set(valid)];
+}
+function sanitizeModuleOrder(value) {
+  const preferred = sanitizeModuleList(value);
+  const remainder = ALL_MODULES.filter((module2) => !preferred.includes(module2));
+  return preferred.length > 0 ? [...preferred, ...remainder] : [...ALL_MODULES];
+}
+function sanitizeRelativeFolderPath(value, fallback) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+  const segments = value.split(/[\\/]+/).map((segment) => segment.trim()).filter((segment) => segment !== "" && segment !== "." && segment !== "..");
+  return segments.length > 0 ? (0, import_obsidian.normalizePath)(segments.join("/")) : fallback;
+}
+function sanitizeDashboardNoteName(value, fallback) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+  const collapsed = value.trim().replace(/[\\/]+/g, "-");
+  const safe = collapsed.replace(/[^A-Za-z0-9._ -]+/g, "").trim();
+  if (!safe) {
+    return fallback;
+  }
+  return safe.toLowerCase().endsWith(".md") ? safe : `${safe}.md`;
+}
+function sanitizeAuditValue(value) {
+  return String(value ?? "").replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").replace(/\|/g, "/").trim();
 }

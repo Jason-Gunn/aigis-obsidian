@@ -1,6 +1,6 @@
-**# AIGIS Workspace
+# AIGIS Workspace
 
-This vault section is the governance workspace used by the plugin.
+This folder is the managed governance workspace used by the plugin.
 
 ## Modules
 
@@ -10,6 +10,10 @@ This vault section is the governance workspace used by the plugin.
 - `Workflows` stores Mermaid-backed process notes.
 - `Skills` stores reusable governed capabilities.
 - `Incidents` stores structured event records.
-- `Audit` stores append-only action history written by the plugin.
+- `Audit` stores plugin-written action history.
 
-Use the `AIGIS: Bootstrap governance vault` command after enabling the plugin to create the dashboard and audit log.
+## Notes
+
+- Run `AIGIS: Bootstrap governance vault` after enabling the plugin to create any missing managed files.
+- The dashboard quick links point to `Audit Log.md` and `User Guide.md`.
+- The audit log is advisory and should not be treated as tamper-proof evidence.

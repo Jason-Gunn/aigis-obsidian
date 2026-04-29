@@ -4,7 +4,7 @@ A stripped-down governance layer for this vault.
 
 ## Module Counts
 - **Inventory:** 0 notes in [[AIGIS/Inventory]]
-- **Prompts:** 1 note in [[AIGIS/Prompts]]
+- **Prompts:** 0 notes in [[AIGIS/Prompts]]
 - **Policies:** 0 notes in [[AIGIS/Policies]]
 - **Workflows:** 0 notes in [[AIGIS/Workflows]]
 - **Skills:** 0 notes in [[AIGIS/Skills]]
@@ -12,7 +12,7 @@ A stripped-down governance layer for this vault.
 
 ## Quick Links
 - [[AIGIS/Audit/Audit Log.md|Audit Log]]
-- [[AIGIS/README|Workspace Guide]]
+- [[AIGIS/User Guide.md|User Guide]]
 
 ## Upcoming Policy Reviews
 - No policy review dates found yet.
