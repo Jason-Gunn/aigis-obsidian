@@ -465,14 +465,8 @@ export default class AigisGovernancePlugin extends Plugin {
       dashboardNoteName: sanitizeDashboardNoteName(saved?.dashboardNoteName, DEFAULT_SETTINGS.dashboardNoteName),
       hiddenModules: sanitizeModuleList(saved?.hiddenModules),
       moduleOrder: sanitizeModuleOrder(saved?.moduleOrder),
-      customLists: {
-        ...DEFAULT_SETTINGS.customLists,
-        ...(saved?.customLists ?? {})
-      },
-      consoleStyle: {
-        ...DEFAULT_CONSOLE_STYLE,
-        ...(saved?.consoleStyle ?? {})
-      }
+      customLists: normalizeCustomLists(saved?.customLists),
+      consoleStyle: normalizeConsoleStyle(saved?.consoleStyle)
     };
   }
 
@@ -625,7 +619,7 @@ export default class AigisGovernancePlugin extends Plugin {
     const moduleEntries = Object.entries(MODULES) as Array<[ModuleKind, ModuleDefinition]>;
     const lines = moduleEntries.map(([module, definition]) => {
       const count = this.countModuleNotes(module);
-      return `- **${definition.label}:** ${count} note${count === 1 ? "" : "s"} in [[${this.getModuleFolder(module)}]]`;
+      return `- **${definition.label}:** ${count} note${count === 1 ? "" : "s"} in ${formatVaultMarkdownLink(this.getModuleFolder(module))}`;
     });
 
     return [
@@ -637,8 +631,8 @@ export default class AigisGovernancePlugin extends Plugin {
       ...lines,
       "",
       "## Quick Links",
-      `- [[${this.getAuditLogPath()}|Audit Log]]`,
-      `- [[${this.getRootFolder()}/${MANAGED_GUIDE_NAME}|User Guide]]`,
+      `- ${formatVaultMarkdownLink(this.getAuditLogPath(), "Audit Log")}`,
+      `- ${formatVaultMarkdownLink(normalizePath(`${this.getRootFolder()}/${MANAGED_GUIDE_NAME}`), "User Guide")}`,
       "",
       "## Upcoming Policy Reviews",
       ...(policyHeadlines.length > 0 ? policyHeadlines : ["- No policy review dates found yet."]),
@@ -667,7 +661,7 @@ export default class AigisGovernancePlugin extends Plugin {
       .sort((left, right) => left.reviewDate.localeCompare(right.reviewDate))
       .slice(0, 5);
 
-    return datedPolicies.map((entry) => `- ${entry.reviewDate}: [[${entry.file.path}|${entry.file.basename}]]`);
+    return datedPolicies.map((entry) => `- ${entry.reviewDate}: ${formatVaultMarkdownLink(entry.file.path, entry.file.basename)}`);
   }
 
   async openManagedNote(path: string): Promise<void> {
@@ -1262,4 +1256,68 @@ function sanitizeAuditValue(value: unknown): string {
     .replace(/\s+/g, " ")
     .replace(/\|/g, "/")
     .trim();
+}
+
+function normalizeCustomLists(value: unknown): CustomLists {
+  const source = value && typeof value === "object" ? value as Partial<Record<CustomListKey, unknown>> : {};
+
+  return {
+    vendors: normalizeStringArray(source.vendors, DEFAULT_SETTINGS.customLists.vendors),
+    models: normalizeStringArray(source.models, DEFAULT_SETTINGS.customLists.models),
+    teams: normalizeStringArray(source.teams, DEFAULT_SETTINGS.customLists.teams)
+  };
+}
+
+function normalizeConsoleStyle(value: unknown): ConsoleStyle {
+  const source = value && typeof value === "object" ? value as Partial<Record<keyof ConsoleStyle, unknown>> : {};
+
+  return {
+    cardBg: normalizeConsoleStyleValue(source.cardBg, DEFAULT_CONSOLE_STYLE.cardBg),
+    cardPadding: normalizeConsoleStyleValue(source.cardPadding, DEFAULT_CONSOLE_STYLE.cardPadding),
+    cardBorderColor: normalizeConsoleStyleValue(source.cardBorderColor, DEFAULT_CONSOLE_STYLE.cardBorderColor),
+    cardBorderWidth: normalizeConsoleStyleValue(source.cardBorderWidth, DEFAULT_CONSOLE_STYLE.cardBorderWidth),
+    cardBorderRadius: normalizeConsoleStyleValue(source.cardBorderRadius, DEFAULT_CONSOLE_STYLE.cardBorderRadius),
+    titleFontSize: normalizeConsoleStyleValue(source.titleFontSize, DEFAULT_CONSOLE_STYLE.titleFontSize),
+    titleColor: normalizeConsoleStyleValue(source.titleColor, DEFAULT_CONSOLE_STYLE.titleColor),
+    countFontSize: normalizeConsoleStyleValue(source.countFontSize, DEFAULT_CONSOLE_STYLE.countFontSize),
+    countColor: normalizeConsoleStyleValue(source.countColor, DEFAULT_CONSOLE_STYLE.countColor),
+    descFontSize: normalizeConsoleStyleValue(source.descFontSize, DEFAULT_CONSOLE_STYLE.descFontSize),
+    descColor: normalizeConsoleStyleValue(source.descColor, DEFAULT_CONSOLE_STYLE.descColor),
+    btnBg: normalizeConsoleStyleValue(source.btnBg, DEFAULT_CONSOLE_STYLE.btnBg),
+    btnColor: normalizeConsoleStyleValue(source.btnColor, DEFAULT_CONSOLE_STYLE.btnColor),
+    btnFontSize: normalizeConsoleStyleValue(source.btnFontSize, DEFAULT_CONSOLE_STYLE.btnFontSize)
+  };
+}
+
+function normalizeStringArray(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value)) {
+    return [...fallback];
+  }
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item !== "")
+    .filter((item, index, all) => all.indexOf(item) === index);
+}
+
+function normalizeConsoleStyleValue(value: unknown, fallback: string): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function formatVaultMarkdownLink(path: string, label?: string): string {
+  const display = escapeMarkdownLinkText(label ?? path);
+  const target = encodeVaultPath(path);
+  return `[${display}](${target})`;
+}
+
+function escapeMarkdownLinkText(value: string): string {
+  return value.replace(/[\[\]]/g, (match) => `\\${match}`);
+}
+
+function encodeVaultPath(path: string): string {
+  return path
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
 }
