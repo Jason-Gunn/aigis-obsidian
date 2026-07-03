@@ -1318,6 +1318,6 @@ function escapeMarkdownLinkText(value: string): string {
 function encodeVaultPath(path: string): string {
   return path
     .split("/")
-    .map((segment) => encodeURIComponent(segment))
+    .map((segment) => encodeURIComponent(segment).replace(/[()]/g, (match) => (match === "(" ? "%28" : "%29")))
     .join("/");
 }

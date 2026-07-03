@@ -1167,5 +1167,5 @@ function escapeMarkdownLinkText(value) {
   return value.replace(/[\[\]]/g, (match) => `\\${match}`);
 }
 function encodeVaultPath(path) {
-  return path.split("/").map((segment) => encodeURIComponent(segment)).join("/");
+  return path.split("/").map((segment) => encodeURIComponent(segment).replace(/[()]/g, (match) => match === "(" ? "%28" : "%29")).join("/");
 }
